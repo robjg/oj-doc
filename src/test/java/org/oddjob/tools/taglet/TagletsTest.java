@@ -66,7 +66,7 @@ public class TagletsTest {
 		File index = new File(dest, "index.html");
 		File oddjob = new File(dest, "org/oddjob/Oddjob.html");
 		
-		File oddjobSrc = dirs.relative("../oddjob/src/java");
+		File oddjobSrc = dirs.relative("../oddjob/src/main/java");
 		
 		assertThat(oddjobSrc.exists(), CoreMatchers.is(true));
 		

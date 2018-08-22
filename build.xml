@@ -434,6 +434,8 @@
 	<!-- =================================================================== -->
 	<target name="clean" depends="init" description="Cleans the build directories">
 		<delete dir="${build.dir}"/>
+        <delete dir="${test.src.dir}/oddballs/apple/classes"/>
+        <delete dir="${test.src.dir}/oddballs/orange/classes"/>
 	</target>
 
 </project>

@@ -33,7 +33,7 @@ public class ManualDocletTest {
 	
 	File dest = new File(dirs.base(), "work/reference");
 
-	File oddjobSrc = dirs.relative("../oddjob/src/java");
+	File oddjobSrc = dirs.relative("../oddjob/src/main/java");
 	
     @Before
     public void setUp() throws Exception {
