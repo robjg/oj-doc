@@ -1,8 +1,12 @@
 package org.oddjob.tools;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import org.junit.Assert;
+import org.junit.Test;
+import org.oddjob.OurDirs;
+import org.oddjob.io.BufferType;
+import org.oddjob.util.IO;
+import org.xml.sax.SAXException;
+import org.xmlunit.matchers.CompareMatcher;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -11,12 +15,7 @@ import java.io.InputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.oddjob.io.BufferType;
-import org.oddjob.util.IO;
-import org.xml.sax.SAXException;
-import org.xmlunit.matchers.CompareMatcher;
+import static org.junit.Assert.*;
 
 public class DocPostProcessorTest {
 

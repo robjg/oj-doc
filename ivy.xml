@@ -20,7 +20,8 @@
 
         <dependency org="uk.co.rgordon" name="run-oddjob" rev="latest.integration"
             conf="test->default" />
-            
+
+		<dependency org="com.sun" name="tools" rev=""/>
 	</dependencies>
   
 </ivy-module>

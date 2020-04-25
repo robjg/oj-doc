@@ -1,10 +1,10 @@
 package org.oddjob.tools.taglet;
 
-import org.oddjob.tools.doclet.utils.InlineTagsProcessor;
-
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.Tag;
 import com.sun.tools.doclets.Taglet;
+import org.oddjob.tools.OjDocLogger;
+import org.oddjob.tools.doclet.utils.InlineTagsProcessor;
 
 /**
  * Base class for Taglet functionality for an Oddjob block tag.
@@ -12,7 +12,9 @@ import com.sun.tools.doclets.Taglet;
  * @author rob
  *
  */
-abstract public class BaseBlockTaglet implements Taglet {	
+abstract public class BaseBlockTaglet implements Taglet {
+
+	private static final OjDocLogger logger = OjDocLogger.getLogger();
 
 	@Override
 	final public boolean inConstructor() {
@@ -36,7 +38,19 @@ abstract public class BaseBlockTaglet implements Taglet {
 
 	@Override
 	public String toString(Tag tag) {
-		String text = new InlineTagsProcessor().process(tag.inlineTags());
+		logger.debug(String.format("Processing %s at %s",
+				tag.name(), tag.holder().position().toString()));
+
+		String text;
+		try {
+			text = new InlineTagsProcessor().process(tag.inlineTags());
+		} catch ( RuntimeException e ) {
+			text = String.format("Failed Processing %s at %s",
+					tag.name(), tag.holder().position().toString());
+
+			logger.error(text, e);
+		}
+
 		if (tag.holder() instanceof ClassDoc) {
 			return "<h4>" + getTitle() + "</h4>" + text;
 		}

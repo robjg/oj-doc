@@ -1,5 +1,16 @@
 <ivysettings>
-  <properties file="${ivy.default.ivy.user.dir}/ivy.properties"/>
-  <property name="ivy.global.settings.dir" value="${ivy.default.settings.dir}" override="false"/>
-  <include url="${ivy.global.settings.dir}/ivysettings.xml"/>
+  <include file="../oj-assembly/ivysettings.xml"/>
+
+  <resolvers>
+    <!-- your other resolvers here -->
+    <filesystem name="JDK" local="true">
+      <artifact pattern="${java.home}/lib/[artifact].[type]" />
+      <artifact pattern="${java.home}/../lib/[artifact].[type]" />
+      <!-- You can add more patterns to fit your needs for MacOSX etc -->
+    </filesystem>
+  </resolvers>
+  <modules>
+    <module organisation="com.sun" name="tools" resolver="JDK"/>
+  </modules>
+
 </ivysettings>

@@ -1,14 +1,14 @@
 package org.oddjob.tools.includes;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
+import org.oddjob.OurDirs;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.junit.Test;
-import org.oddjob.tools.OurDirs;
+import static org.junit.Assert.assertEquals;
 
 public class SnippetFilterTest {
 	

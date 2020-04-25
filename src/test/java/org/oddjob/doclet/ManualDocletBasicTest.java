@@ -1,16 +1,16 @@
 package org.oddjob.doclet;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
+import org.oddjob.OurDirs;
+import org.oddjob.arooa.convert.convertlets.FileConvertlets;
+import org.oddjob.tools.BuildOddball;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Test;
-import org.oddjob.arooa.convert.convertlets.FileConvertlets;
-import org.oddjob.tools.BuildOddball;
-import org.oddjob.tools.OurDirs;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ManualDocletBasicTest {
 
