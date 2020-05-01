@@ -3,15 +3,15 @@
  */
 package org.oddjob.doclet;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
-
 import org.oddjob.arooa.ConfiguredHow;
 import org.oddjob.arooa.beandocs.BeanDoc;
 import org.oddjob.arooa.beandocs.ExampleDoc;
 import org.oddjob.arooa.beandocs.PropertyDoc;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * Creates the reference files.
@@ -20,7 +20,7 @@ import org.oddjob.arooa.beandocs.PropertyDoc;
  */
 public class ManualWriter {
 	
-	public static final String COPYWRITE = "(c) Rob Gordon 2005 - 2018";
+	public static final String COPYWRITE = "(c) R Gordon Ltd 2002 - 2020";
 	
     private final File directory;
    

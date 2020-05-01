@@ -12,16 +12,18 @@
 	</publications>  
 
 	<dependencies>
-	    <dependency org="uk.co.rgordon" name="oddjob" rev="latest.integration"
+	    <dependency org="uk.co.rgordon" name="oddjob" rev="${project.version}"
 	    	conf="default->default" />
 	    	
-	    <dependency org="uk.co.rgordon" name="oddjob" rev="latest.integration"
+	    <dependency org="uk.co.rgordon" name="oddjob" rev="${project.version}"
 	    	conf="test->test" />
 
-        <dependency org="uk.co.rgordon" name="run-oddjob" rev="latest.integration"
+        <dependency org="uk.co.rgordon" name="run-oddjob" rev="${project.version}"
             conf="test->default" />
 
-		<dependency org="com.sun" name="tools" rev=""/>
+		<dependency org="com.sun" name="tools" rev=""
+			conf="provided->default"/>
+
 	</dependencies>
   
 </ivy-module>

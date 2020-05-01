@@ -9,6 +9,7 @@
       <!-- You can add more patterns to fit your needs for MacOSX etc -->
     </filesystem>
   </resolvers>
+
   <modules>
     <module organisation="com.sun" name="tools" resolver="JDK"/>
   </modules>
