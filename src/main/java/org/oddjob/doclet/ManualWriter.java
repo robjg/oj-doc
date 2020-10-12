@@ -20,7 +20,7 @@ import java.io.PrintWriter;
  */
 public class ManualWriter {
 	
-	public static final String COPYWRITE = "(c) R Gordon Ltd 2002 - 2020";
+	public static final String COPYWRITE = "(c) R Gordon Ltd 2005 - Present";
 	
     private final File directory;
    

@@ -1,2 +1,2 @@
 Oddjob Documentation Tool
-Copyright 2002-2020 R Gordon Ltd
+Copyright 2005-Present R Gordon Ltd
