@@ -13,8 +13,9 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+
 
 public class TagletsTest {
 
@@ -33,7 +34,12 @@ public class TagletsTest {
 
     @Before
     public void setUp() throws Exception {
-        logger.info("-------------------  " + getName() + "  -------------------");
+
+        String jdk = System.getProperty("java.vm.specification.version");
+
+        logger.info("-------------------  " + getName() + "  " + jdk + " -------------------");
+
+        org.junit.Assume.assumeTrue("1.8".equals(jdk));
 
         // try 3 times - why does this fail?
         for (int i = 0; ; ++i) {
@@ -69,7 +75,7 @@ public class TagletsTest {
 
         File oddjobSrc = dirs.relative("../oddjob/src/main/java");
 
-        assertThat(oddjobSrc.exists(), CoreMatchers.is(true));
+        assertThat(oddjobSrc.exists(), is(true));
 
         int result = com.sun.tools.javadoc.Main.execute(
                 new String[]{
@@ -87,8 +93,8 @@ public class TagletsTest {
 
         logger.info("Javadoc completed with status " + result);
 
-        assertTrue(index.exists());
-        assertTrue(oddjob.exists());
+        assertThat(index.exists(), is(true));
+        assertThat(oddjob.exists(), is(true));
     }
 
 	@Test
@@ -117,7 +123,7 @@ public class TagletsTest {
 
 		logger.info("Javadoc completed with status " + result);
 
-		assertTrue(index.exists());
-		assertTrue(expected.exists());
+		assertThat(index.exists(), is(true));
+		assertThat(expected.exists(), is(true));
 	}
 }
