@@ -13,13 +13,13 @@
 
 	<dependencies>
 	    <dependency org="uk.co.rgordon" name="oddjob" rev="${project.version}"
-	    	conf="default->default" />
+	    	conf="default->default" changing="true"/>
 	    	
 	    <dependency org="uk.co.rgordon" name="oddjob" rev="${project.version}"
-	    	conf="test->test" />
+	    	conf="test->test" changing="true"/>
 
         <dependency org="uk.co.rgordon" name="run-oddjob" rev="${project.version}"
-            conf="test->default" />
+            conf="test->default" changing="true"/>
 
 		<dependency org="com.sun" name="tools" rev=""
 			conf="provided->default"/>
