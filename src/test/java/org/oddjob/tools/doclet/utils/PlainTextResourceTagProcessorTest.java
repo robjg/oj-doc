@@ -1,40 +1,38 @@
 package org.oddjob.tools.doclet.utils;
 
-import static org.junit.Assert.assertEquals;
-
+import com.sun.source.doctree.DocTree;
+import com.sun.source.doctree.UnknownInlineTagTree;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.oddjob.doclet.CustomTagNames;
+import org.oddjob.doc.doclet.CustomTagNames;
 import org.oddjob.tools.OddjobTestHelper;
 import org.oddjob.tools.includes.PlainTextResourceLoader;
 
-import com.sun.javadoc.ClassDoc;
-import com.sun.javadoc.PackageDoc;
-import com.sun.javadoc.Tag;
+import javax.lang.model.element.Element;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class PlainTextResourceTagProcessorTest {
 		
     @Test
 	public void testProcessTag() {
 
-		PackageDoc packageDoc = Mockito.mock(PackageDoc.class);
-		Mockito.when(packageDoc.name()).thenReturn("org.oddjob.tools.doclet");
+		DocTree content = mock(DocTree.class);
+		when(content.toString()).thenReturn("org/oddjob/tools/doclet/utils/SomePlainText.txt");
 
-		ClassDoc classDoc = Mockito.mock(ClassDoc.class);
-		Mockito.when(classDoc.containingPackage()).thenReturn(packageDoc);
-		
-		ClassDoc referencedClassDock = Mockito.mock(ClassDoc.class);
-		Mockito.when(referencedClassDock.name()).thenReturn("Apples");
-		
-		Tag tag = Mockito.mock(Tag.class);
-		Mockito.when(tag.text()).thenReturn(
-				"org/oddjob/tools/doclet/utils/SomePlainText.txt");
-		Mockito.when(tag.name()).thenReturn("@oddjob.text.resource");
+		UnknownInlineTagTree tag = mock(UnknownInlineTagTree.class);
+		Mockito.doReturn(List.of(content)).when(tag).getContent();
+		Mockito.when(tag.getTagName()).thenReturn("oddjob.text.resource");
 		
 		GenericIncludeTagProcessor test = new GenericIncludeTagProcessor(
-				CustomTagNames.TEXT_RESOURCE_TAG, new PlainTextResourceLoader());
-		
-		String result = test.process(tag);
+				CustomTagNames.TEXT_RESOURCE_TAG_NAME, new PlainTextResourceLoader());
+
+		Element element = mock(Element.class);
+
+		String result = test.process(tag, element);
 
 		String expected = 
 				"<pre>" + OddjobTestHelper.LS +

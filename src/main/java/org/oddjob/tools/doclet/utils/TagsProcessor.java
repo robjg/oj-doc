@@ -1,6 +1,9 @@
 package org.oddjob.tools.doclet.utils;
 
-import com.sun.javadoc.Tag;
+import com.sun.source.doctree.DocTree;
+
+import javax.lang.model.element.Element;
+import java.util.List;
 
 /**
  * Something that can process a number of tags.
@@ -8,7 +11,7 @@ import com.sun.javadoc.Tag;
  * @author rob
  *
  */
-public interface TagsProcessor {
+interface TagsProcessor {
 
 	/**
 	 * Process the tags. Generally the text returned will be HTML
@@ -18,5 +21,5 @@ public interface TagsProcessor {
 	 * @param tags The tags to process.
 	 * @return The text. This is not expected to be null.
 	 */
-	public String process(Tag[] tags);
+	String process(List<? extends DocTree> tags, Element element);
 }

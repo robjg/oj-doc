@@ -1,23 +1,11 @@
 package org.oddjob.tools;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import org.oddjob.doc.doclet.CustomTagNames;
+import org.oddjob.tools.includes.*;
+
+import java.io.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.oddjob.doclet.CustomTagNames;
-import org.oddjob.tools.includes.IncludeLoader;
-import org.oddjob.tools.includes.JavaCodeFileLoader;
-import org.oddjob.tools.includes.PlainTextFileLoader;
-import org.oddjob.tools.includes.PlainTextResourceLoader;
-import org.oddjob.tools.includes.XMLFileLoader;
-import org.oddjob.tools.includes.XMLResourceLoader;
 
 
 public class DocPostProcessor implements Runnable {

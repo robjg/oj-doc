@@ -1,10 +1,10 @@
 package org.oddjob.tools.includes;
 
+import org.oddjob.doc.doclet.CustomTagNames;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-
-import org.oddjob.doclet.CustomTagNames;
 
 /**
  * Converts Plain Text to HTML. At the moment this just wraps the text in

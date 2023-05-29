@@ -1,10 +1,10 @@
 package org.oddjob.tools.includes;
 
-import java.io.InputStream;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.oddjob.io.ResourceType;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Creates text that can be inserted into JavaDoc or another XML document from
@@ -34,9 +34,11 @@ public class JavaCodeResourceLoader implements IncludeLoader {
 			
 			String resource = filterFactory.getResourcePath();
 			
-			InputStream input = new ResourceType(
-					resource).toInputStream();
-			
+			InputStream input = getClass().getClassLoader().getResourceAsStream(path);
+			if (input == null) {
+				throw new IOException("No Resource Found: path");
+			}
+
 			logger.info("Reading resource " + resource);
 			
 			String result = filterFactory.getTextLoader().load(

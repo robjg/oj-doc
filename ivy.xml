@@ -12,17 +12,17 @@
 	</publications>  
 
 	<dependencies>
-	    <dependency org="uk.co.rgordon" name="oddjob" rev="${project.version}"
+	    <dependency org="uk.co.rgordon" name="arooa" rev="${project.version}"
 	    	conf="default->default" changing="true"/>
 	    	
 	    <dependency org="uk.co.rgordon" name="oddjob" rev="${project.version}"
 	    	conf="test->test" changing="true"/>
 
-        <dependency org="uk.co.rgordon" name="run-oddjob" rev="${project.version}"
-            conf="test->default" changing="true"/>
+		<dependency org="org.junit.jupiter" name="junit-jupiter" rev="${junit5.version}"
+					conf="test->default"/>
 
-		<dependency org="com.sun" name="tools" rev=""
-			conf="provided->default"/>
+		<dependency org="org.junit.vintage" name="junit-vintage-engine" rev="${junit5.version}"
+					conf="test->default"/>
 
 	</dependencies>
   

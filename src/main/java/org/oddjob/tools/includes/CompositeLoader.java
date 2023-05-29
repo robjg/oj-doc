@@ -1,20 +1,20 @@
 package org.oddjob.tools.includes;
 
+import org.oddjob.doc.doclet.CustomTagNames;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import org.oddjob.doclet.CustomTagNames;
-
 /**
- * As yet unused.
+ * Loaders for examples. Used from the Manual Doclet.
  * 
  * @author rob
  *
  */
 public class CompositeLoader implements IncludeLoader {
 
-	private Map<String, IncludeLoader> loaders = 
-		new HashMap<String, IncludeLoader>();
+	private final Map<String, IncludeLoader> loaders =
+			new HashMap<>();
 	
 	private IncludeLoader selected;
 	

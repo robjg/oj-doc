@@ -1,14 +1,16 @@
 package org.oddjob.tools.doclet.utils;
 
-import com.sun.javadoc.Tag;
+import com.sun.source.doctree.DocTree;
+
+import javax.lang.model.element.Element;
 
 /**
- * Something that can process a {@link Tag}.
+ * Something that can process a {@link DocTree}.
  * 
  * @author rob
  *
  */
-public interface TagProcessor {
+interface TagProcessor {
 
 	/**
 	 * Process the tag. Generally the text returned will be HTML
@@ -19,5 +21,5 @@ public interface TagProcessor {
 	 * @return Text or null if this processor can't process the given
 	 * tag.
 	 */
-	public String process(Tag tag);
+	String process(DocTree tag, Element element);
 }

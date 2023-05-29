@@ -1,11 +1,11 @@
 package org.oddjob.tools.includes;
 
-import java.io.File;
-import java.io.FileInputStream;
-
+import org.oddjob.doc.doclet.CustomTagNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.oddjob.doclet.CustomTagNames;
+
+import java.io.File;
+import java.io.FileInputStream;
 
 /**
  * Creates text that can be inserted into JavaDoc or another XML document from
@@ -47,7 +47,7 @@ public class JavaCodeFileLoader implements IncludeLoader, CustomTagNames {
 			return java2html.convert(result);
 		}
 		catch (Exception e) {
-			return "<p><em>" + e.toString() + "</em></p>" + EOL;
+			return "<p><em>" + e + "</em></p>" + EOL;
 		}
 	}
 }

@@ -1,8 +1,11 @@
 package org.oddjob.tools.doclet.utils;
 
+import com.sun.source.doctree.DocTree;
+import com.sun.source.doctree.UnknownInlineTagTree;
+import org.oddjob.doc.util.DocUtil;
 import org.oddjob.tools.includes.XMLResourceLoader;
 
-import com.sun.javadoc.Tag;
+import javax.lang.model.element.Element;
 
 /**
  * Process Oddjob XML resource tag.
@@ -10,16 +13,22 @@ import com.sun.javadoc.Tag;
  * @author rob
  *
  */
-public class XMLResourceTagProcessor implements TagProcessor {
+class XMLResourceTagProcessor implements TagProcessor {
 
 	@Override
-	public String process(Tag tag) {
-		
-		if (! tag.name().equals(XMLResourceLoader.XML_RESOURCE_TAG)) {
+	public String process(DocTree tag, Element element) {
+
+		if (!(tag instanceof UnknownInlineTagTree)) {
+			return null;
+		}
+
+		UnknownInlineTagTree unknown = ((UnknownInlineTagTree) tag);
+
+		if (!XMLResourceLoader.XML_RESOURCE_TAG_NAME.equals(unknown.getTagName())) {
 			return null;
 		}
 		
-		String path = tag.text();
+		String path = DocUtil.toString(unknown.getContent());
 		
 		return new XMLResourceLoader().load(path);		
 	}

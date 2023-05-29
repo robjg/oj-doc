@@ -15,7 +15,7 @@ public interface IncludeLoader {
 	 * @param tag The tag including the '@'.
 	 * @return true if the loader can load the given tag.
 	 */
-	public boolean canLoad(String tag);
+	boolean canLoad(String tag);
 	
 	/**
 	 * Load the resource of file.
@@ -23,5 +23,5 @@ public interface IncludeLoader {
 	 * @param path The resource or file path.
 	 * @return HTML text.
 	 */
-	public String load(String path);
+	String load(String path);
 }

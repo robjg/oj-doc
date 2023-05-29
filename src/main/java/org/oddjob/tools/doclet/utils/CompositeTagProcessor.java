@@ -1,6 +1,8 @@
 package org.oddjob.tools.doclet.utils;
 
-import com.sun.javadoc.Tag;
+import com.sun.source.doctree.DocTree;
+
+import javax.lang.model.element.Element;
 
 /**
  * A {@link TagProcessor} that tries a number of different processors
@@ -9,7 +11,7 @@ import com.sun.javadoc.Tag;
  * @author rob
  *
  */
-public class CompositeTagProcessor implements TagProcessor {
+class CompositeTagProcessor implements TagProcessor {
 
 	private final TagProcessor[] processors;
 	
@@ -23,9 +25,9 @@ public class CompositeTagProcessor implements TagProcessor {
 	}
 	
 	@Override
-	public String process(Tag tag) {
+	public String process(DocTree tag, Element element) {
 		for (TagProcessor processor : processors) {
-			String snipet = processor.process(tag);
+			String snipet = processor.process(tag, element);
 			if (snipet != null) {
 				return snipet;
 			}
