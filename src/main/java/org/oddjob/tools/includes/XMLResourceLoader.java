@@ -1,6 +1,8 @@
 package org.oddjob.tools.includes;
 
 import org.oddjob.doc.doclet.CustomTagNames;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -10,6 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 
 /**
  * Creates XML that can be inserted into JavaDoc or another XML document from
@@ -22,6 +25,8 @@ import java.io.InputStream;
  *
  */
 public class XMLResourceLoader implements IncludeLoader, CustomTagNames {
+
+	private static final Logger logger = LoggerFactory.getLogger(XMLResourceLoader.class);
 
 	@Override
 	public boolean canLoad(String tag) {
@@ -45,14 +50,17 @@ public class XMLResourceLoader implements IncludeLoader, CustomTagNames {
 			}
 
 			String xml = filterFactory.getTextLoader().load(input);
-			
-			InputStream stylesheet = 
-				XMLResourceLoader.class.getResourceAsStream("xml-2-string.xsl");
-			
+
+			InputStream stylesheet = Objects.requireNonNull(
+							XMLResourceLoader.class.getResourceAsStream("xml-2-string.xsl"),
+					"No Stylesheet");
+
 			ByteArrayOutputStream result = new ByteArrayOutputStream();
 
 			Transformer transformer = TransformerFactory.newInstance()
 					.newTransformer(new StreamSource(stylesheet));
+
+			logger.info("Processing XML of length {} from ", xml.length(), resource);
 
 			transformer.transform(
 					new StreamSource(new ByteArrayInputStream(xml.getBytes())),
@@ -63,6 +71,7 @@ public class XMLResourceLoader implements IncludeLoader, CustomTagNames {
 				"</pre>" + EOL;
 		}
 		catch (Exception e) {
+			logger.error("Failed processing {}", resource, e);
 			return "<p><em>" + e + "</em></p>" + EOL;
 		}
 	}

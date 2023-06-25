@@ -8,10 +8,8 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.*;
+import java.util.Objects;
 
 /**
  * Creates XML that can be inserted into JavaDoc or another XML document from
@@ -46,28 +44,30 @@ public class XMLFileLoader implements IncludeLoader, CustomTagNames {
 						
 			File file = new File(base, filterFactory.getResourcePath());
 			
-			logger.info("Reading file " + file);
-			
 			InputStream input = new FileInputStream(file);
 			
 			String xml = filterFactory.getTextLoader().load(input);
-			
-			InputStream stylesheet = 
-				getClass().getResourceAsStream("xml-2-string.xsl");
-			
+
+			InputStream stylesheet = Objects.requireNonNull(
+					XMLResourceLoader.class.getResourceAsStream("xml-2-string.xsl"),
+					"No Stylesheet");
+
 			ByteArrayOutputStream result = new ByteArrayOutputStream();
 
 			Transformer transformer = TransformerFactory.newInstance()
 					.newTransformer(new StreamSource(stylesheet));
 
+			logger.info("Processing XML of length {}, from ", xml.length(), file);
+
 			transformer.transform(
-					new StreamSource(input),
+					new StreamSource(new ByteArrayInputStream(xml.getBytes())),
 					new StreamResult(result));
 			
 			return "<pre class=\"xml\">" + EOL + result +
 				"</pre>" + EOL;
 		}
 		catch (Exception e) {
+			logger.error("Failed processing {}", fileName, e);
 			return "<p><em>" + e + "</em></p>" + EOL;
 		}
 	}
