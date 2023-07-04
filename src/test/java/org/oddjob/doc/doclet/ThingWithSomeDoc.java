@@ -15,7 +15,7 @@ package org.oddjob.doc.doclet;
  *
  * @see Processor
  */
-public class ThingWithSomeDoc {
+public class ThingWithSomeDoc extends ThingWithSomeDocBase {
 
     /**
      * @oddjob.property

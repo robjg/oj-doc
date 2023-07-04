@@ -3,7 +3,6 @@
  */
 package org.oddjob.doc.doclet;
 
-import com.sun.source.util.DocTrees;
 import jdk.javadoc.doclet.Doclet;
 import jdk.javadoc.doclet.DocletEnvironment;
 import jdk.javadoc.doclet.Reporter;
@@ -107,11 +106,9 @@ public class ReferenceDoclet implements Doclet {
             return jats;
         }
 
-        void process(DocletEnvironment docEnv, String destination, String title) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        boolean process(DocletEnvironment docEnv, String destination, String title) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
 
             TagletProvider tagletProvider = new UnknownInlineTagletProvider(docEnv, ReferenceDoclet.this);
-
-            DocTrees docTrees = docEnv.getDocTrees();
 
             InlineHelperProvider inlineHelperProvider = new ReferenceHelperProvider(
                     docEnv.getDocTrees(),
@@ -127,9 +124,11 @@ public class ReferenceDoclet implements Doclet {
                     pathToRefRoot -> pathToRefRoot + "/../api"
             );
 
-            Processor processor = new Processor(docTrees, inlineHelperProvider, reporter);
+            Processor processor = new Processor(docEnv, inlineHelperProvider, reporter);
 
             final Archiver archiver = new Archiver(jats, processor, reporter);
+
+            boolean result = true;
 
             for (TypeElement element : ElementFilter.typesIn(docEnv.getIncludedElements())) {
 
@@ -139,13 +138,21 @@ public class ReferenceDoclet implements Doclet {
                     continue;
                 }
 
-                archiver.archive(element);
+                try {
+                    archiver.archive(element);
+                } catch (RuntimeException e) {
+                    reporter.print(Diagnostic.Kind.ERROR, element,
+                            "Failed Processing " + e);
+
+                    result = false;
+                }
             }
 
             ManualWriter w = new ManualWriter(destination, title);
             w.createManual(archiver);
-        }
 
+            return result;
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -353,15 +360,14 @@ public class ReferenceDoclet implements Doclet {
             Main md = new Main(
                     options.getDescriptorPath(), options.getResource());
 
-            md.process(environment, options.getDestination(),
+            return md.process(environment, options.getDestination(),
                     options.getTitle());
+
         } catch (ClassNotFoundException | InvocationTargetException | InstantiationException | NoSuchMethodException |
                  IllegalAccessException | MalformedURLException e) {
             reporter.print(Diagnostic.Kind.ERROR, e.getMessage());
             return false;
         }
-
-        return true;
     }
 
     private static class Options {

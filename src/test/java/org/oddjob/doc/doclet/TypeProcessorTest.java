@@ -24,8 +24,7 @@ import java.util.Set;
 import java.util.spi.ToolProvider;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.mock;
 
 class TypeProcessorTest {
@@ -40,6 +39,7 @@ class TypeProcessorTest {
     void testSingleClass() {
 
         Path srcPath = OurDirs.relativePath("src/test/java/org/oddjob/doc/doclet/ThingWithSomeDoc.java");
+        Path srcPath2 = OurDirs.relativePath("src/test/java/org/oddjob/doc/doclet/ThingWithSomeDocBase.java");
 
         reporter = mock(Reporter.class);
 
@@ -51,7 +51,7 @@ class TypeProcessorTest {
                 .orElseThrow(() -> new IllegalArgumentException("No JavaDco"));
         int result = toolProvider.run(System.out, System.err,
                 "-doclet", TestDoclet.class.getName(),
-                srcPath.toString());
+                srcPath.toString(), srcPath2.toString());
 
         assertThat(beanDocConsumer.description().getFirstSentence(), is("First sentence in block tag."));
 
@@ -77,6 +77,12 @@ class TypeProcessorTest {
         assertThat(anotherPropConsumer.getRequired(), is("Yes"));
         assertThat(anotherPropConsumer.isClosed(), is(true));
 
+        CaptureConsumer.Property superPropConsumer = beanDocConsumer.getProperty("superProp");
+
+        assertThat(superPropConsumer.getFirstSentence(), is("Property in super class."));
+        assertThat(superPropConsumer.getBody(), is("Property in super class."));
+        assertThat(superPropConsumer.getRequired(), nullValue());
+        assertThat(superPropConsumer.isClosed(), is(true));
     }
 
     public static class TestDoclet implements Doclet {
@@ -106,7 +112,7 @@ class TypeProcessorTest {
 
             InlineHelperProvider inlineHelperProvider = typeElement -> inlineTagHelper;
 
-            Processor test = new Processor(environment.getDocTrees(), inlineHelperProvider, reporter);
+            Processor test = new Processor(environment, inlineHelperProvider, reporter);
 
             TypeElement element = (TypeElement) new ArrayList<>(environment.getSpecifiedElements()).get(0);
 

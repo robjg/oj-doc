@@ -5,9 +5,11 @@ package org.oddjob.doc.doclet;
 
 import com.sun.source.doctree.DocCommentTree;
 import com.sun.source.util.DocTrees;
+import jdk.javadoc.doclet.DocletEnvironment;
 import jdk.javadoc.doclet.Reporter;
 import org.oddjob.arooa.utils.EtcUtils;
 import org.oddjob.doc.beandoc.TypeConsumers;
+import org.oddjob.doc.util.DocUtil;
 import org.oddjob.doc.util.InlineTagHelper;
 import org.oddjob.doc.visitor.PropertyVisitor;
 import org.oddjob.doc.visitor.TypeVisitor;
@@ -17,6 +19,8 @@ import org.oddjob.doc.visitor.VisitorContextBuilder;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,7 +33,7 @@ import java.util.Optional;
 public class Processor implements ElementProcessor{
 
 
-	private final DocTrees docTrees ;
+	private final DocletEnvironment docEnv ;
 
 	private final InlineHelperProvider linkProcessorProvider;
 
@@ -38,15 +42,15 @@ public class Processor implements ElementProcessor{
 	/**
 	 * Create a processor.
 	 *  
-	 * @param docTrees The utility class for access comments.
+	 * @param docEnv The utility class for access comments.
 	 * @param linkProcessorProvider Helper for inline tags.
 	 * @param reporter The javadoc Reporter.
 	 */
-	public Processor(DocTrees docTrees,
+	public Processor(DocletEnvironment docEnv,
 					 InlineHelperProvider linkProcessorProvider,
 					 Reporter reporter) {
 
-		this.docTrees = docTrees;
+		this.docEnv = docEnv;
 		this.linkProcessorProvider = linkProcessorProvider;
 		this.reporter = reporter;
 	}
@@ -59,6 +63,8 @@ public class Processor implements ElementProcessor{
 	 */
 	@Override
 	public void process(TypeElement element, TypeConsumers typeConsumers) {
+
+		DocTrees docTrees = docEnv.getDocTrees();
 
 		DocCommentTree docCommentTree = docTrees.getDocCommentTree(element);
 
@@ -75,16 +81,29 @@ public class Processor implements ElementProcessor{
 				.visit(docCommentTree, typeConsumers);
 
 
-		List<? extends Element> enclosed = element.getEnclosedElements();
+		List<Element> enclosed = enclosedElements(element, new ArrayList<>());
 
-		for (Element e : enclosed) {
+		for (Element enclosedElement : enclosed) {
 
-			processFieldOrMethod(e, typeConsumers, inlineTagHelper);
+			processFieldOrMethod(enclosedElement, typeConsumers, inlineTagHelper);
 		}
 
 		typeConsumers.close();
 	}
 
+	List<Element> enclosedElements(TypeElement element, List<Element> accumulator) {
+
+		if (Object.class.getName().equals(DocUtil.fqcnFor(element))) {
+			return accumulator;
+		}
+
+		accumulator.addAll(element.getEnclosedElements());
+
+		TypeMirror typeMirror = element.getSuperclass();
+
+		return enclosedElements(
+				(TypeElement) docEnv.getTypeUtils().asElement(typeMirror), accumulator);
+	}
 
 	/**
 	 * Process fields and method elements and ignore others.
@@ -95,6 +114,8 @@ public class Processor implements ElementProcessor{
 	 */
 	void processFieldOrMethod(Element element, TypeConsumers beanDocConsumer,
 							  InlineTagHelper inlineTagHelper) {
+
+		DocTrees docTrees = docEnv.getDocTrees();
 
 		Optional<String> optionalPropertyName = toProp(element);
 

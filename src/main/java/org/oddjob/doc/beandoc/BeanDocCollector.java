@@ -76,8 +76,13 @@ public class BeanDocCollector implements TypeConsumers {
     @Override
     public BeanDocConsumer.Property property(String property) {
 
-        WriteablePropertyDoc writeablePropertyDoc = new WriteablePropertyDoc();
-        writeablePropertyDoc.setPropertyName(property);
+        WriteablePropertyDoc writeablePropertyDoc = this.beanDoc.propertyDocFor(property);
+
+        // This happens when a base class has some property doc, but
+        // it's overridden by a super class (i.e. VariablesJob)
+        if (writeablePropertyDoc == null) {
+            return null;
+        }
 
         StringBuilder firstSentence = new StringBuilder();
         StringBuilder propertyDescription = new StringBuilder();

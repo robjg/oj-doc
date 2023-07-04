@@ -45,7 +45,7 @@ public class PropertyVisitor extends NoopVisitor {
 
         private final TypeConsumers typeConsumers;
 
-        private final String propertyName;
+        private String propertyName;
 
         private BeanDocConsumer.Property propertyConsumer;
 
@@ -64,15 +64,23 @@ public class PropertyVisitor extends NoopVisitor {
 
                 String tagContent = DocUtil.toString(node.getContent());
 
-                if (tagContent.isBlank() && !tagContent.equals(this.propertyName)) {
-                    visitorContext.warn("Derived Property name [" + this.propertyName  +
-                            "] does not match tag property name [" + tagContent + "]");
+                if (!tagContent.isBlank()) {
+                    if (!tagContent.equals(this.propertyName)) {
+                        visitorContext.warn("Derived Property name [" + this.propertyName  +
+                                "] does not match tag property name [" + tagContent + "]");
+
+                    }
+                    this.propertyName = tagContent;
                 }
-                ensurePropertyConsumer();
+                if (!ensurePropertyConsumer()) {
+                    return null;
+                }
             }
             else if (CustomTagNames.DESCRIPTION_TAG_NAME.equals(tagName)) {
 
-                ensurePropertyConsumer();
+                if (!ensurePropertyConsumer()) {
+                    return null;
+                }
 
                 DocCommentTree docCommentTree = docTrees.getDocTreeFactory().newDocCommentTree(
                         node.getContent(), List.of());
@@ -87,7 +95,9 @@ public class PropertyVisitor extends NoopVisitor {
 
             } else if (CustomTagNames.REQUIRED_TAG_NAME.equals(tagName)) {
 
-                ensurePropertyConsumer();
+                if (!ensurePropertyConsumer()) {
+                    return null;
+                }
 
                 propertyConsumer.required(DocUtil.toString(node.getContent()));
 
@@ -99,10 +109,12 @@ public class PropertyVisitor extends NoopVisitor {
             return null;
         }
 
-        void ensurePropertyConsumer() {
+        boolean ensurePropertyConsumer() {
             if (propertyConsumer == null) {
                 propertyConsumer = typeConsumers.property(propertyName);
             }
+
+            return propertyConsumer != null;
         }
 
         @Override

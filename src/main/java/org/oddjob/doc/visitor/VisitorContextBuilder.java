@@ -36,6 +36,11 @@ public class VisitorContextBuilder {
         }
 
         @Override
+        public void info(String msg) {
+            reporter.print(Diagnostic.Kind.NOTE, element, msg);
+        }
+
+        @Override
         public void warn(String msg) {
             reporter.print(Diagnostic.Kind.WARNING, element, msg);
         }
@@ -44,6 +49,12 @@ public class VisitorContextBuilder {
         public void fail(String msg) {
             reporter.print(Diagnostic.Kind.ERROR, element, msg);
             throw new IllegalArgumentException(msg);
+        }
+
+        @Override
+        public void fail(String msg, Exception e) {
+            reporter.print(Diagnostic.Kind.ERROR, element, msg);
+            throw new IllegalArgumentException(msg, e);
         }
 
         @Override

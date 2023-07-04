@@ -11,9 +11,13 @@ import com.sun.source.doctree.UnknownInlineTagTree;
  */
 public interface VisitorContext {
 
+    void info(String msg);
+
     void warn(String msg);
 
     void fail(String msg);
+
+    void fail(String msg, Exception e);
 
     String processLink(LinkTree linkTag);
 
