@@ -8,10 +8,11 @@ import org.oddjob.tools.includes.XMLResourceLoader;
 
 import javax.lang.model.element.Element;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
- * Loads and XML resource and formats it for the Javadoc.
+ * Loads and XML resource and formats it for the Javadoc. Resources must be on the classpath of the Taglet.
  */
 public class XmlResourceTaglet implements Taglet {
 
@@ -37,6 +38,10 @@ public class XmlResourceTaglet implements Taglet {
 
         String resource = inlineTagTree.getContent().get(0).toString();
 
-        return XMLResourceLoader.loadXml(resource);
+        ClassLoader classLoader = Objects.requireNonNullElseGet(
+                Thread.currentThread().getContextClassLoader(),
+                () -> getClass().getClassLoader());
+
+        return XMLResourceLoader.loadXml(resource, classLoader);
     }
 }

@@ -1,11 +1,10 @@
 package org.oddjob.tools;
 
-import org.junit.Assert;
+import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.oddjob.OurDirs;
 import org.oddjob.io.BufferType;
 import org.oddjob.util.IO;
-import org.xml.sax.SAXException;
 import org.xmlunit.matchers.CompareMatcher;
 
 import java.io.ByteArrayInputStream;
@@ -19,7 +18,7 @@ import static org.junit.Assert.*;
 
 public class DocPostProcessorTest {
 
-	String EOL = System.getProperty("line.separator");
+	String EOL = System.lineSeparator();
 	
     @Test
 	public void testJavaFilePattern() {
@@ -35,9 +34,9 @@ public class DocPostProcessorTest {
 	}
 	
     @Test
-	public void testxMLResourcePattern() {
+	public void testXmlResourcePattern() {
 		
-		Pattern test = new DocPostProcessor.XMLResourceInjector().pattern;
+		Pattern test = DocPostProcessor.XMLResourceInjector.pattern;
 		
 		Matcher matcher = test.matcher("bla bla {@oddjob.xml.resource " +
 				"org/oddjob/tools/SomeXML.xml}--foo");
@@ -48,7 +47,7 @@ public class DocPostProcessorTest {
 	}
 	
     @Test
-	public void testInsertFile() throws SAXException, IOException {
+	public void testInsertFile() throws IOException {
 		
 		OurDirs dirs = new OurDirs();
 		
@@ -83,11 +82,11 @@ public class DocPostProcessorTest {
 		IO.copy(expected, 
 				buffer.toOutputStream());
 		
-		String result = new String(output.toByteArray());
+		String result = output.toString();
 		
 		System.out.println(result);
 		
-		Assert.assertThat(result, CompareMatcher.isSimilarTo(buffer.getText()));
+		MatcherAssert.assertThat(result, CompareMatcher.isSimilarTo(buffer.getText()));
 
 	}
 }

@@ -12,7 +12,6 @@ import org.oddjob.doc.util.InlineTagHelper;
 import org.oddjob.doc.visitor.BlockVisitor;
 import org.oddjob.doc.visitor.VisitorContext;
 import org.oddjob.doc.visitor.VisitorContextBuilder;
-import org.oddjob.tools.OjDocLogger;
 
 import javax.lang.model.element.Element;
 import java.util.List;
@@ -23,8 +22,6 @@ import java.util.List;
  * @author rob
  */
 abstract public class BaseBlockTaglet implements Taglet {
-
-    private static final OjDocLogger logger = OjDocLogger.getLogger();
 
     private DocletEnvironment env;
 
@@ -50,16 +47,12 @@ abstract public class BaseBlockTaglet implements Taglet {
     @Override
     public String toString(List<? extends DocTree> tags, Element element) {
 
-        logger.debug(String.format("Processing %s at %s",
-                getName(), element.getKind()));
-
         DocTrees docTrees = env.getDocTrees();
 
         Reporter reporter = DocTreesReporter.with(docTrees);
 
         VisitorContext visitorContext = VisitorContextBuilder
                 .create(inlineTagHelper, reporter, element);
-
 
         StringBuilder stringBuilder = new StringBuilder();
 

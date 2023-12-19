@@ -1,6 +1,5 @@
 package org.oddjob.doc.taglet;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -10,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.spi.ToolProvider;
@@ -38,7 +39,7 @@ public class TagletsTest {
     @Test
     public void whenCustomTagletUsedThenWhatHappens() throws IOException {
 
-        Path dest = OurDirs.workPathDir(TagletsTest.class.getSimpleName() + "_whenCustom", true);
+        Path dest = OurDirs.workPathDir(TagletsTest.class, "whenCustom");
 
         Path index = dest.resolve("index.html");
         Path oddjob = dest.resolve("foo/sample/SampleOne.html");
@@ -64,7 +65,7 @@ public class TagletsTest {
     @Test
     public void testOddjobTags() throws IOException {
 
-        Path dest = OurDirs.workPathDir(TagletsTest.class.getSimpleName() + "_oddjobTags", true);
+        Path dest = OurDirs.workPathDir(TagletsTest.class, "oddjobTags");
 
         Path index = dest.resolve("index.html");
         Path oddjob = dest.resolve("org/oddjob/Oddjob.html");
@@ -96,7 +97,7 @@ public class TagletsTest {
     @Test
     public void testOne() throws IOException {
 
-        Path dest = OurDirs.workPathDir(TagletsTest.class.getSimpleName() + "_testOne", true);
+        Path dest = OurDirs.workPathDir(TagletsTest.class, "testOne");
 
         Path index = dest.resolve("index.html");
         Path oddjob = dest.resolve("org/oddjob/Oddjob.html");
@@ -137,34 +138,51 @@ public class TagletsTest {
     }
 
     @Test
-    public void testThatWasCausingNullPointerException() throws IOException {
+    public void whatWasCausingNullPointerException() throws IOException {
 
-        Path dest = OurDirs.workPathDir(TagletsTest.class.getSimpleName() +
-                "_testThatWasCausingNullPointerException", true);
+        Path dest = OurDirs.workPathDir(TagletsTest.class,
+                "whatWasCausingNullPointerException");
 
         Path index = dest.resolve("index.html");
         Path expected = dest.resolve("org/oddjob/arooa/deploy/BeanDefinition.html");
 
         Path src = OurDirs.relativePath("../arooa/src/main/java");
+        Path arooaIncludes = OurDirs.relativePath("../arooa/target/test-classes");
+        Path oddjobIncludes = OurDirs.relativePath("../oddjob/target/test-classes");
 
-        assertThat(Files.exists(src), CoreMatchers.is(true));
+        assertThat(Files.exists(src), is(true));
+
+        String propertyTaglet = PropertyTaglet.class.getName();
+        String descriptionTaglet = DescriptionTaglet.class.getName();
+        String exampleTaglet = ExampleTaglet.class.getName();
+        String requiredTaglet = RequiredTaglet.class.getName();
 
         ToolProvider toolProvider = ToolProvider.findFirst("javadoc")
                 .orElseThrow(() -> new IllegalArgumentException("No JavaDco"));
-        int result = toolProvider.run(System.out, System.err,
-                "-sourcepath", src.toString(),
-                "-taglet", "org.oddjob.tools.taglet.PropertyTaglet",
-                "-taglet", "org.oddjob.tools.taglet.DescriptionTaglet",
-                "-taglet", "org.oddjob.tools.taglet.ExampleTaglet",
-                "-taglet", "org.oddjob.tools.taglet.RequiredTaglet",
-                "-tag", "see",
-                "-tag", "author",
-                "-tag", "version",
-                "-tag", "since",
-                "-d", dest.toString(),
-                "org.oddjob.arooa.deploy");
 
-        logger.info("Javadoc completed with status " + result);
+        ClassLoader existing = Thread.currentThread().getContextClassLoader();
+        try (URLClassLoader classLoader =  URLClassLoader.newInstance(
+                new URL[] { arooaIncludes.toUri().toURL(), oddjobIncludes.toUri().toURL() })) {
+
+            Thread.currentThread().setContextClassLoader(classLoader);
+
+            int result = toolProvider.run(System.out, System.err,
+                    "-Xdoclint:none",
+                    "-sourcepath", src.toString(),
+                    "-taglet", propertyTaglet,
+                    "-taglet", descriptionTaglet,
+                    "-taglet", exampleTaglet,
+                    "-taglet", requiredTaglet,
+                    "-tag", "oddjob.xml.resource",
+                    "-d", dest.toString(),
+                    "org.oddjob.arooa.deploy");
+
+            logger.info("Javadoc completed with status " + result);
+            assertThat(result, is(0));
+        }
+        finally {
+            Thread.currentThread().setContextClassLoader(existing);
+        }
 
         assertThat(Files.exists(index), is(true));
         assertThat(Files.exists(expected), is(true));

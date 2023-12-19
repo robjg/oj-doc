@@ -31,6 +31,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -148,7 +149,9 @@ public class ReferenceDoclet implements Doclet {
                 }
             }
 
-            ManualWriter w = new ManualWriter(destination, title);
+            ManualWriter w = new ManualWriter(
+                    Objects.requireNonNull(destination, "No destination"),
+                    title);
             w.createManual(archiver);
 
             return result;

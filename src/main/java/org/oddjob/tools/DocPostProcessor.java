@@ -4,6 +4,7 @@ import org.oddjob.doc.doclet.CustomTagNames;
 import org.oddjob.tools.includes.*;
 
 import java.io.*;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,13 +16,18 @@ public class DocPostProcessor implements Runnable {
 	private InputStream input;
 	
 	private OutputStream output;
-	
+
+
+	private ClassLoader classLoader;
+
 	@Override
 	public void run() {
-		
+
+		ClassLoader classLoader = Objects.requireNonNullElse(this.classLoader, getClass().getClassLoader());
+
 		Injector[] injectors = new Injector[] {
 			new JavaCodeInjector(),
-			new XMLResourceInjector(),
+			new XMLResourceInjector(classLoader),
 			new XMLFileInjector(),
 			new GenericInjector(CustomTagNames.TEXT_FILE_TAG, 
 					new PlainTextFileLoader(baseDir)),
@@ -113,10 +119,16 @@ public class DocPostProcessor implements Runnable {
 	}
 	
 	static class XMLResourceInjector implements Injector {
-		
-		final Pattern pattern = Pattern.compile("\\{\\s*" + 
+
+		final static Pattern pattern = Pattern.compile("\\{\\s*" +
 				XMLResourceLoader.XML_RESOURCE_TAG + "\\s*(\\S+)\\s*\\}");
-		
+
+		private final XMLResourceLoader resourceLoader;
+
+		XMLResourceInjector(ClassLoader classLoader) {
+			this.resourceLoader = new XMLResourceLoader(classLoader);
+		}
+
 		@Override
 		public boolean parse(String line, PrintWriter out) {
 			
@@ -126,7 +138,7 @@ public class DocPostProcessor implements Runnable {
 				return false;
 			}
 			
-			out.println(new XMLResourceLoader().load(matcher.group(1)));
+			out.println(resourceLoader.load(matcher.group(1)));
 			
 			return true;
 		}		

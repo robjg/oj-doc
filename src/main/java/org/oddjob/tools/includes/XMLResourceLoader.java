@@ -17,16 +17,23 @@ import java.util.Objects;
 /**
  * Creates XML that can be inserted into JavaDoc or another XML document from
  * an XML class path resource.
- *
+ * <p>
  * The style-sheet used is courtesy of:
  * <a href="http://lenzconsulting.com/xml-to-string/">http://lenzconsulting.com/xml-to-string/</a>
- *
+ * </p>
  * @author rob
  *
  */
 public class XMLResourceLoader implements IncludeLoader, CustomTagNames {
 
 	private static final Logger logger = LoggerFactory.getLogger(XMLResourceLoader.class);
+
+	private final ClassLoader classLoader;
+
+	public XMLResourceLoader(ClassLoader classLoader) {
+		this.classLoader = (Objects.requireNonNull(classLoader, "No Classloader"));
+	}
+
 
 	@Override
 	public boolean canLoad(String tag) {
@@ -35,16 +42,16 @@ public class XMLResourceLoader implements IncludeLoader, CustomTagNames {
 	
 	@Override
 	public String load(String resource) {
-		return loadXml(resource);
+		return loadXml(resource, classLoader);
 	}
 
-	public static String loadXml(String resource) {
+	public static String loadXml(String resource, ClassLoader classloader) {
 		try {
 			FilterFactory filterFactory = new FilterFactory(resource);
 
 			String resourcePath = filterFactory.getResourcePath();
 
-			InputStream input = XMLResourceLoader.class.getClassLoader().getResourceAsStream(resourcePath);
+			InputStream input = classloader.getResourceAsStream(resourcePath);
 			if (input == null) {
 				throw new IOException("No resource " + resourcePath);
 			}
@@ -60,7 +67,7 @@ public class XMLResourceLoader implements IncludeLoader, CustomTagNames {
 			Transformer transformer = TransformerFactory.newInstance()
 					.newTransformer(new StreamSource(stylesheet));
 
-			logger.info("Processing XML of length {} from ", xml.length(), resource);
+			logger.info("Processing XML of length {} from {}", xml.length(), resource);
 
 			transformer.transform(
 					new StreamSource(new ByteArrayInputStream(xml.getBytes())),

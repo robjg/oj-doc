@@ -10,7 +10,8 @@ import java.io.FileOutputStream;
 import java.util.Objects;
 
 /**
- * Processes reference and user guide to load the examples from file.
+ * Post Processes HTML docs looking for Tags to replace with imported code and configuration.
+ * Used to inject examples into the User and Development Guides.
  * 
  * @author rob
  *
