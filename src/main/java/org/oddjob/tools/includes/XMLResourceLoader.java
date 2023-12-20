@@ -1,6 +1,5 @@
 package org.oddjob.tools.includes;
 
-import org.oddjob.doc.doclet.CustomTagNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +23,7 @@ import java.util.Objects;
  * @author rob
  *
  */
-public class XMLResourceLoader implements IncludeLoader, CustomTagNames {
+public class XMLResourceLoader implements IncludeLoader {
 
 	private static final Logger logger = LoggerFactory.getLogger(XMLResourceLoader.class);
 
@@ -35,11 +34,6 @@ public class XMLResourceLoader implements IncludeLoader, CustomTagNames {
 	}
 
 
-	@Override
-	public boolean canLoad(String tag) {
-		return XML_RESOURCE_TAG.equals(tag);
-	}
-	
 	@Override
 	public String load(String resource) {
 		return loadXml(resource, classLoader);
@@ -73,13 +67,13 @@ public class XMLResourceLoader implements IncludeLoader, CustomTagNames {
 					new StreamSource(new ByteArrayInputStream(xml.getBytes())),
 					new StreamResult(result));
 			
-			return "<pre class=\"xml\">" + EOL +
-					result +
-				"</pre>" + EOL;
+			return "<pre class=\"xml\">\n" +
+					result + "\n" +
+				"</pre>\n";
 		}
 		catch (Exception e) {
 			logger.error("Failed processing {}", resource, e);
-			return "<p><em>" + e + "</em></p>" + EOL;
+			return "<p><em>" + e + "</em></p>\n";
 		}
 	}
 }

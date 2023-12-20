@@ -1,6 +1,5 @@
 package org.oddjob.tools.includes;
 
-import org.oddjob.doc.doclet.CustomTagNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +14,7 @@ import java.io.InputStream;
  * @author rob
  *
  */
-public class PlainTextFileLoader implements IncludeLoader, CustomTagNames {
+public class PlainTextFileLoader implements IncludeLoader {
 
 	private static final Logger logger = LoggerFactory.getLogger(PlainTextFileLoader.class);
 	
@@ -23,11 +22,6 @@ public class PlainTextFileLoader implements IncludeLoader, CustomTagNames {
 	
 	public PlainTextFileLoader(File base) {
 		this.base = base;
-	}
-	
-	@Override
-	public boolean canLoad(String tag) {
-		return TEXT_FILE_TAG.equals(tag);
 	}
 	
 	@Override
@@ -43,7 +37,7 @@ public class PlainTextFileLoader implements IncludeLoader, CustomTagNames {
 			return new PlainTextToHTML().toHTML(input);
 		}
 		catch (Exception e) {
-			return "<p><em>" + e.toString() + "</em></p>" + EOL;
+			return "<p><em>" + e + "</em></p>\n";
 		}
 	}
 }

@@ -56,7 +56,7 @@ public class DocPostProcessorTest {
 		test.setBaseDir(dirs.base());
 		
 		String input = 
-			"<body>" + EOL +
+			"<body>\n" + EOL +
 			"<h1>Some Java</h1>" + EOL +
 			"     {@oddjob.java.file src/test/java/org/oddjob/tools/SomeJavaCode.java}" + EOL +
 			"<h1>Some XML</h1>" + EOL +
@@ -86,7 +86,9 @@ public class DocPostProcessorTest {
 		
 		System.out.println(result);
 		
-		MatcherAssert.assertThat(result, CompareMatcher.isSimilarTo(buffer.getText()));
+		MatcherAssert.assertThat(result,
+				CompareMatcher.isSimilarTo(buffer.getText())
+						.normalizeWhitespace());
 
 	}
 }

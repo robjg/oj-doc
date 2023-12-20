@@ -101,7 +101,7 @@ public class DocPostProcessor implements Runnable {
 	class JavaCodeInjector implements Injector {	
 		
 		final Pattern pattern = Pattern.compile("\\{\\s*" + 
-				JavaCodeFileLoader.JAVA_FILE_TAG + "\\s*(\\S+)\\s*\\}");
+				CustomTagNames.JAVA_FILE_TAG + "\\s*(\\S+)\\s*\\}");
 		
 		@Override
 		public boolean parse(String line, PrintWriter out) {
@@ -121,7 +121,7 @@ public class DocPostProcessor implements Runnable {
 	static class XMLResourceInjector implements Injector {
 
 		final static Pattern pattern = Pattern.compile("\\{\\s*" +
-				XMLResourceLoader.XML_RESOURCE_TAG + "\\s*(\\S+)\\s*\\}");
+				CustomTagNames.XML_RESOURCE_TAG + "\\s*(\\S+)\\s*\\}");
 
 		private final XMLResourceLoader resourceLoader;
 
@@ -147,7 +147,7 @@ public class DocPostProcessor implements Runnable {
 	class XMLFileInjector implements Injector {	
 		
 		final Pattern pattern = Pattern.compile("\\{\\s*" + 
-				XMLFileLoader.XML_FILE_TAG + "\\s*(\\S+)\\s*\\}");
+				CustomTagNames.XML_FILE_TAG + "\\s*(\\S+)\\s*\\}");
 		
 		@Override
 		public boolean parse(String line, PrintWriter out) {

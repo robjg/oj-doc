@@ -1,6 +1,5 @@
 package org.oddjob.tools.includes;
 
-import org.oddjob.doc.doclet.CustomTagNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +14,7 @@ import java.io.FileInputStream;
  * @author rob
  *
  */
-public class JavaCodeFileLoader implements IncludeLoader, CustomTagNames {
+public class JavaCodeFileLoader implements IncludeLoader {
 	
 	private static final Logger logger = LoggerFactory.getLogger(JavaCodeFileLoader.class);
 	
@@ -25,11 +24,6 @@ public class JavaCodeFileLoader implements IncludeLoader, CustomTagNames {
 		this.base = base;
 	}
 		
-	@Override
-	public boolean canLoad(String tag) {
-		return JAVA_FILE_TAG.equals(tag);
-	}
-	
 	public String load(String path) {
 		
 		try {			
@@ -47,7 +41,7 @@ public class JavaCodeFileLoader implements IncludeLoader, CustomTagNames {
 			return java2html.convert(result);
 		}
 		catch (Exception e) {
-			return "<p><em>" + e + "</em></p>" + EOL;
+			return "<p><em>" + e + "</em></p>\n";
 		}
 	}
 }

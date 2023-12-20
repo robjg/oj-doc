@@ -1,7 +1,5 @@
 package org.oddjob.tools.includes;
 
-import org.oddjob.doc.doclet.CustomTagNames;
-
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -12,13 +10,8 @@ import java.io.InputStream;
  * @author rob
  *
  */
-public class PlainTextResourceLoader implements IncludeLoader, CustomTagNames {
+public class PlainTextResourceLoader implements IncludeLoader {
 
-	@Override
-	public boolean canLoad(String tag) {
-		return TEXT_RESOURCE_TAG.equals(tag);
-	}
-	
 	@Override
 	public String load(String resource) {
 
@@ -37,7 +30,7 @@ public class PlainTextResourceLoader implements IncludeLoader, CustomTagNames {
 			return new PlainTextToHTML().toHTML(input);
 		}
 		catch (Exception e) {
-			return "<p><em>" + e + "</em></p>" + EOL;
+			return "<p><em>" + e + "</em></p>\n";
 		}
 	}
 }

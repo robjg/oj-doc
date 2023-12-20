@@ -18,15 +18,6 @@ public class JavaCodeResourceLoader implements IncludeLoader {
 	
 	private static final Logger logger = LoggerFactory.getLogger(JavaCodeResourceLoader.class);
 	
-	private static final String EOL = System.getProperty("line.separator");
-	
-	public static final String TAG = "@oddjob.java.resource";
-				
-	@Override
-	public boolean canLoad(String tag) {
-		return TAG.equals(tag);
-	}
-	
 	public String load(String path) {
 		
 		try {			
@@ -49,7 +40,7 @@ public class JavaCodeResourceLoader implements IncludeLoader {
 			return java2html.convert(result);
 		}
 		catch (Exception e) {
-			return "<p><em>" + e.toString() + "</em></p>" + EOL;
+			return "<p><em>" + e + "</em></p>\n";
 		}
 	}
 }

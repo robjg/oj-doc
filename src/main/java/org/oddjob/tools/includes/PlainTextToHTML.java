@@ -1,7 +1,5 @@
 package org.oddjob.tools.includes;
 
-import org.oddjob.doc.doclet.CustomTagNames;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -18,9 +16,8 @@ public class PlainTextToHTML {
 	public String toHTML(InputStream inputStream) throws IOException {
 
 		StringBuilder builder = new StringBuilder();
-		builder.append("<pre>");
-		builder.append(CustomTagNames.EOL);
-		
+		builder.append("<pre>\n");
+
 		InputStreamReader reader = new InputStreamReader(inputStream);
 		
 		char[] buffer = new char[1024];
@@ -30,9 +27,8 @@ public class PlainTextToHTML {
 			builder.append(buffer, 0, i);
 		}
 		
-		builder.append("</pre>");
-		builder.append(CustomTagNames.EOL);
-		
+		builder.append("</pre>\n");
+
 		return builder.toString();
 	}
 }

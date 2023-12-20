@@ -4,17 +4,20 @@ import com.sun.source.doctree.DocTree;
 import com.sun.source.doctree.UnknownInlineTagTree;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.oddjob.tools.OddjobTestHelper;
 
 import javax.lang.model.element.Element;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class PlainTextResourceTagletTest {
-		
+
+	// Test file created on windows
+	static final String LS = "\r\n";
+
     @Test
 	public void testProcessTag() {
 
@@ -32,11 +35,11 @@ public class PlainTextResourceTagletTest {
 		String result = test.toString(List.of(tag), element);
 
 		String expected = 
-				"<pre>" + OddjobTestHelper.LS +
-				"Remember 2 < 3 & 5 > 4" + OddjobTestHelper.LS +
-				"But This is a new line." + OddjobTestHelper.LS +
-				"</pre>" + OddjobTestHelper.LS;
+				"<pre>\n" +
+				"Remember 2 < 3 & 5 > 4" + LS +
+				"But This is a new line." + LS +
+				"</pre>\n";
 		
-		assertEquals(expected, result);
+		assertThat(result, is(expected));
 	}
 }

@@ -1,6 +1,5 @@
 package org.oddjob.tools.includes;
 
-import org.oddjob.doc.doclet.CustomTagNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,14 +13,15 @@ import java.util.Objects;
 /**
  * Creates XML that can be inserted into JavaDoc or another XML document from
  * an XML file.
- * 
+ * <p>
  * The style-sheet used is courtesy of:
  * <a href="http://lenzconsulting.com/xml-to-string/">lenzconsulting.com</a>
- * 
+ * </p>
+ *
  * @author rob
  *
  */
-public class XMLFileLoader implements IncludeLoader, CustomTagNames {
+public class XMLFileLoader implements IncludeLoader {
 
 	private static final Logger logger = LoggerFactory.getLogger(XMLFileLoader.class);
 	
@@ -30,12 +30,7 @@ public class XMLFileLoader implements IncludeLoader, CustomTagNames {
 	public XMLFileLoader(File base) {
 		this.base = base;
 	}
-	
-	@Override
-	public boolean canLoad(String tag) {
-		return XML_FILE_TAG.equals(tag);
-	}
-	
+
 	@Override
 	public String load(String fileName) {
 		
@@ -63,12 +58,13 @@ public class XMLFileLoader implements IncludeLoader, CustomTagNames {
 					new StreamSource(new ByteArrayInputStream(xml.getBytes())),
 					new StreamResult(result));
 			
-			return "<pre class=\"xml\">" + EOL + result +
-				"</pre>" + EOL;
+			return "<pre class=\"xml\">\n" +
+					result + "\n" +
+				"</pre>\n";
 		}
 		catch (Exception e) {
 			logger.error("Failed processing {}", fileName, e);
-			return "<p><em>" + e + "</em></p>" + EOL;
+			return "<p><em>" + e + "</em></p>\n";
 		}
 	}
 }

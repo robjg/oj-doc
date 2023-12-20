@@ -7,78 +7,85 @@ package org.oddjob.doc.doclet;
  * @author rob
  *
  */
-public interface CustomTagNames {
+public class CustomTagNames {
 
-	String EOL = System.getProperty("line.separator");
-	
 	/**
 	 * Provide a description of the job or value.
 	 */
-	String DESCRIPTION_TAG_NAME = "oddjob.description";
+	public static final String DESCRIPTION_TAG_NAME = "oddjob.description";
 	
-	String DESCRIPTION_TAG = "@" + DESCRIPTION_TAG_NAME;
+	public static final String DESCRIPTION_TAG = "@" + DESCRIPTION_TAG_NAME;
 	
 	/**
 	 * Tag for a property of a job or value.
 	 */
-	String PROPERTY_TAG_NAME = "oddjob.property";
-	
-	String PROPERTY_TAG = "@" + PROPERTY_TAG_NAME;
+	public static final String PROPERTY_TAG_NAME = "oddjob.property";
+
+	public static final String PROPERTY_TAG = "@" + PROPERTY_TAG_NAME;
 	
 	/**
 	 * Tag for if the property is required.
 	 */
-	String REQUIRED_TAG_NAME = "oddjob.required";
-	
-	String REQUIRED_TAG = "@" + REQUIRED_TAG_NAME;
+	public static final String REQUIRED_TAG_NAME = "oddjob.required";
+
+	public static final String REQUIRED_TAG = "@" + REQUIRED_TAG_NAME;
 	
 	/**
 	 * Tag for an example of a Job or value.
 	 */
-	String EXAMPLE_TAG_NAME = "oddjob.example";
-	
-	String EXAMPLE_TAG = "@" + EXAMPLE_TAG_NAME;
+	public static final String EXAMPLE_TAG_NAME = "oddjob.example";
+
+	public static final String EXAMPLE_TAG = "@" + EXAMPLE_TAG_NAME;
 	
 	/**
 	 * Tag for an XML resource that is to be loaded into the documentation
 	 * as formatted XML.
 	 */
-	String XML_RESOURCE_TAG_NAME = "oddjob.xml.resource";
-	
-	String XML_RESOURCE_TAG = "@" + XML_RESOURCE_TAG_NAME;
+	public static final String XML_RESOURCE_TAG_NAME = "oddjob.xml.resource";
+
+	public static final String XML_RESOURCE_TAG = "@" + XML_RESOURCE_TAG_NAME;
 	
 	/**
 	 * Tag for a Java Code file that is to be formatted and loaded
 	 * into the documentation.
 	 */
-	String JAVA_FILE_TAG_NAME = "oddjob.java.file";
-	
-	String JAVA_FILE_TAG = "@" + JAVA_FILE_TAG_NAME;
+	public static final String JAVA_FILE_TAG_NAME = "oddjob.java.file";
+
+	public static final String JAVA_FILE_TAG = "@" + JAVA_FILE_TAG_NAME;
 	
 	/**
 	 * Tag for an XML file that is to be loaded into the documentation
 	 * as formatted XML.
 	 */
-	String XML_FILE_TAG_NAME = "oddjob.xml.file";
-	
-	String XML_FILE_TAG = "@" + XML_FILE_TAG_NAME;
+	public static final String XML_FILE_TAG_NAME = "oddjob.xml.file";
+
+	public static final String XML_FILE_TAG = "@" + XML_FILE_TAG_NAME;
 	
 	
 	/**
 	 * Tag for a text file that is to be loaded into the documentation
 	 * as formatted HTML.
 	 */
-	String TEXT_FILE_TAG_NAME = "oddjob.text.file";
-	
-	String TEXT_FILE_TAG = "@" + TEXT_FILE_TAG_NAME;
+	public static final String TEXT_FILE_TAG_NAME = "oddjob.text.file";
+
+	public static final String TEXT_FILE_TAG = "@" + TEXT_FILE_TAG_NAME;
 	
 	
 	/**
 	 * Tag for a text resource that is to be loaded into the documentation
 	 * as formatted HTML.
 	 */
-	String TEXT_RESOURCE_TAG_NAME = "oddjob.text.resource";
-	
-	String TEXT_RESOURCE_TAG = "@" + TEXT_RESOURCE_TAG_NAME;
-	
+	public static final String TEXT_RESOURCE_TAG_NAME = "oddjob.text.resource";
+
+	public static final String TEXT_RESOURCE_TAG = "@" + TEXT_RESOURCE_TAG_NAME;
+
+	/**
+	 * Tag for a Java resource that is to be loaded into the documentation as
+	 * formatted HTML.
+	 */
+
+	public static final String JAVA_RESOURCE_TAG_NAME = "oddjob.java.resource";
+
+	public static final String JAVA_RESOURCE_TAG = "@" + JAVA_RESOURCE_TAG_NAME;
+
 }
