@@ -1,9 +1,19 @@
 package org.oddjob.tools;
 
+import org.oddjob.arooa.beandocs.element.JavaCodeBlock;
+import org.oddjob.arooa.beandocs.element.XmlBlock;
 import org.oddjob.doc.doclet.CustomTagNames;
-import org.oddjob.tools.includes.*;
+import org.oddjob.doc.html.ExceptionToHtml;
+import org.oddjob.doc.html.JavaToHtml;
+import org.oddjob.doc.loader.IncludeLoader;
+import org.oddjob.doc.loader.PlainTextLoader;
+import org.oddjob.doc.loader.JavaCodeLoader;
+import org.oddjob.doc.loader.XmlLoader;
+import org.oddjob.doc.html.XmlToHtml;
 
+import javax.xml.transform.TransformerException;
 import java.io.*;
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,7 +21,7 @@ import java.util.regex.Pattern;
 
 public class DocPostProcessor implements Runnable {
 
-	private File baseDir;
+	private Path baseDir;
 	
 	private InputStream input;
 	
@@ -30,9 +40,9 @@ public class DocPostProcessor implements Runnable {
 			new XMLResourceInjector(classLoader),
 			new XMLFileInjector(),
 			new GenericInjector(CustomTagNames.TEXT_FILE_TAG, 
-					new PlainTextFileLoader(baseDir)),
+					PlainTextLoader.fromFile(baseDir)),
 			new GenericInjector(CustomTagNames.TEXT_RESOURCE_TAG, 
-							new PlainTextResourceLoader())
+							PlainTextLoader.fromResource(classLoader))
 			};
 		
 		try {
@@ -50,8 +60,14 @@ public class DocPostProcessor implements Runnable {
 				
 				boolean replaced = false;
 				for (Injector injector : injectors) {
-					if (injector.parse(line, writer)) {
-						replaced = true;
+
+					try {
+						if (injector.parse(line, writer)) {
+							replaced = true;
+							break;
+						}
+					} catch (Exception e) {
+						writer.println(ExceptionToHtml.toHtml(e));
 						break;
 					}
 				}
@@ -69,11 +85,11 @@ public class DocPostProcessor implements Runnable {
 		}
 	}
 
-	public File getBaseDir() {
+	public Path getBaseDir() {
 		return baseDir;
 	}
 
-	public void setBaseDir(File baseDir) {
+	public void setBaseDir(Path baseDir) {
 		this.baseDir = baseDir;
 	}
 
@@ -95,24 +111,29 @@ public class DocPostProcessor implements Runnable {
 	
 	interface Injector {
 		
-		public boolean parse(String line, PrintWriter out);
+		boolean parse(String line, PrintWriter out) throws Exception;
 	}
 	
 	class JavaCodeInjector implements Injector {	
 		
 		final Pattern pattern = Pattern.compile("\\{\\s*" + 
 				CustomTagNames.JAVA_FILE_TAG + "\\s*(\\S+)\\s*\\}");
-		
+
+		private final JavaCodeLoader javaCodeLoader = JavaCodeLoader.fromFile(baseDir);
+
+
 		@Override
-		public boolean parse(String line, PrintWriter out) {
+		public boolean parse(String line, PrintWriter out) throws IOException {
 			
 			Matcher matcher = pattern.matcher(line);
 			
 			if (!matcher.find()) {
 				return false;
 			}
-			
-			out.println(new JavaCodeFileLoader(baseDir).load(matcher.group(1)));
+
+			JavaCodeBlock java = javaCodeLoader.load(matcher.group(1));
+
+			out.println(JavaToHtml.toHtml(java));
 			
 			return true;
 		}		
@@ -123,22 +144,24 @@ public class DocPostProcessor implements Runnable {
 		final static Pattern pattern = Pattern.compile("\\{\\s*" +
 				CustomTagNames.XML_RESOURCE_TAG + "\\s*(\\S+)\\s*\\}");
 
-		private final XMLResourceLoader resourceLoader;
+		private final XmlLoader resourceLoader;
 
 		XMLResourceInjector(ClassLoader classLoader) {
-			this.resourceLoader = new XMLResourceLoader(classLoader);
+			this.resourceLoader = XmlLoader.fromResource(classLoader);
 		}
 
 		@Override
-		public boolean parse(String line, PrintWriter out) {
+		public boolean parse(String line, PrintWriter out) throws IOException, TransformerException {
 			
 			Matcher matcher = pattern.matcher(line);
 			
 			if (!matcher.find()) {
 				return false;
 			}
-			
-			out.println(resourceLoader.load(matcher.group(1)));
+
+			XmlBlock xml = resourceLoader.load(matcher.group(1));
+
+			out.println(XmlToHtml.toHtml(xml));
 			
 			return true;
 		}		
@@ -148,17 +171,21 @@ public class DocPostProcessor implements Runnable {
 		
 		final Pattern pattern = Pattern.compile("\\{\\s*" + 
 				CustomTagNames.XML_FILE_TAG + "\\s*(\\S+)\\s*\\}");
-		
+
+		private final XmlLoader xmlLoader = XmlLoader.fromFile(baseDir);
+
 		@Override
-		public boolean parse(String line, PrintWriter out) {
+		public boolean parse(String line, PrintWriter out) throws IOException, TransformerException {
 			
 			Matcher matcher = pattern.matcher(line);
 			
 			if (!matcher.find()) {
 				return false;
 			}
-			
-			out.println(new XMLFileLoader(baseDir).load(matcher.group(1)));
+
+			XmlBlock xml = xmlLoader.load(matcher.group(1));
+
+			out.println(XmlToHtml.toHtml(xml));
 			
 			return true;
 		}		
@@ -177,7 +204,7 @@ public class DocPostProcessor implements Runnable {
 		}
 		
 		@Override
-		public boolean parse(String line, PrintWriter out) {
+		public boolean parse(String line, PrintWriter out) throws Exception {
 			
 			Matcher matcher = pattern.matcher(line);
 			

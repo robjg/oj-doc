@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.nio.file.Path;
 import java.util.Objects;
 
 /**
@@ -24,7 +25,7 @@ public class PostProcessDocs implements Runnable {
 
 	private File[] files;
 
-	private File baseDir;
+	private Path baseDir;
 
 	@Override
 	public void run() {
@@ -66,7 +67,7 @@ public class PostProcessDocs implements Runnable {
 		this.files = files;
 	}
 
-	public void setBaseDir(File baseDir) {
+	public void setBaseDir(Path baseDir) {
 		this.baseDir = baseDir;
 	}
 

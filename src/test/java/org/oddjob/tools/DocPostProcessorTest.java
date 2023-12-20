@@ -2,7 +2,6 @@ package org.oddjob.tools;
 
 import org.hamcrest.MatcherAssert;
 import org.junit.Test;
-import org.oddjob.OurDirs;
 import org.oddjob.io.BufferType;
 import org.oddjob.util.IO;
 import org.xmlunit.matchers.CompareMatcher;
@@ -11,6 +10,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,11 +49,9 @@ public class DocPostProcessorTest {
     @Test
 	public void testInsertFile() throws IOException {
 		
-		OurDirs dirs = new OurDirs();
-		
 		DocPostProcessor test = new DocPostProcessor();
 		
-		test.setBaseDir(dirs.base());
+		test.setBaseDir(Path.of("."));
 		
 		String input = 
 			"<body>\n" + EOL +

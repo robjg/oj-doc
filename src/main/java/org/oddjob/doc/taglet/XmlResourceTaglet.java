@@ -3,10 +3,15 @@ package org.oddjob.doc.taglet;
 import com.sun.source.doctree.DocTree;
 import com.sun.source.doctree.UnknownInlineTagTree;
 import jdk.javadoc.doclet.Taglet;
+import org.oddjob.arooa.beandocs.element.XmlBlock;
 import org.oddjob.doc.doclet.CustomTagNames;
-import org.oddjob.tools.includes.XMLResourceLoader;
+import org.oddjob.doc.html.ExceptionToHtml;
+import org.oddjob.doc.html.XmlToHtml;
+import org.oddjob.doc.loader.XmlLoader;
 
 import javax.lang.model.element.Element;
+import javax.xml.transform.TransformerException;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -42,6 +47,15 @@ public class XmlResourceTaglet implements Taglet {
                 Thread.currentThread().getContextClassLoader(),
                 () -> getClass().getClassLoader());
 
-        return XMLResourceLoader.loadXml(resource, classLoader);
+        XmlLoader xmlLoader = XmlLoader.fromResource(classLoader);
+
+        try {
+            XmlBlock xml = xmlLoader.load(resource);
+
+            return XmlToHtml.toHtml(xml);
+
+        } catch (IOException | TransformerException e) {
+            return ExceptionToHtml.toHtml(e);
+        }
     }
 }

@@ -22,7 +22,7 @@ public class PlainTextResourceTagletTest {
 	public void testProcessTag() {
 
 		DocTree content = mock(DocTree.class);
-		when(content.toString()).thenReturn("org/oddjob/tools/doclet/utils/SomePlainText.txt");
+		when(content.toString()).thenReturn("org/oddjob/doc/loader/SomePlainText.txt");
 
 		UnknownInlineTagTree tag = mock(UnknownInlineTagTree.class);
 		Mockito.doReturn(List.of(content)).when(tag).getContent();
