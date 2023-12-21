@@ -1,12 +1,14 @@
 package org.oddjob.doc.html;
 
+import org.oddjob.arooa.beandocs.element.ExceptionElement;
+
 /**
  * Simple utility to wrap an exception.
  */
 public class ExceptionToHtml {
 
-    public static String toHtml(Exception e) {
+    public static String toHtml(ExceptionElement exceptionElement) {
 
-        return "<p><em>" + e + "</em></p>\n";
+        return "<p><em>" + exceptionElement.getMessage() + "</em></p>\n";
     }
 }

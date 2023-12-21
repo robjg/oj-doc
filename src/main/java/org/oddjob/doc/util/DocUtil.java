@@ -3,6 +3,7 @@ package org.oddjob.doc.util;
 import com.sun.source.doctree.DocCommentTree;
 import com.sun.source.doctree.DocTree;
 import com.sun.source.doctree.ReferenceTree;
+import com.sun.source.doctree.UnknownInlineTagTree;
 import com.sun.source.util.DocTreePath;
 import com.sun.source.util.DocTrees;
 import com.sun.source.util.TreePath;
@@ -92,5 +93,16 @@ public class DocUtil {
 
     public static String fqcnFor(TypeElement classDoc) {
         return classDoc.getQualifiedName().toString();
+    }
+
+    /**
+     * For Unknown tags such as the loader tags where we just expect the file name.
+     *
+     * @param inlineTagTree The Unknown tag.
+     * @return The contents.
+     */
+    public static String unknownTagContent(UnknownInlineTagTree inlineTagTree) {
+
+        return inlineTagTree.getContent().get(0).toString();
     }
 }

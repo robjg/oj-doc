@@ -1,20 +1,18 @@
 package org.oddjob.tools;
 
-import org.oddjob.arooa.beandocs.element.JavaCodeBlock;
-import org.oddjob.arooa.beandocs.element.XmlBlock;
+import org.oddjob.arooa.beandocs.element.BeanDocElement;
+import org.oddjob.doc.DocContext;
 import org.oddjob.doc.doclet.CustomTagNames;
-import org.oddjob.doc.html.ExceptionToHtml;
-import org.oddjob.doc.html.JavaToHtml;
+import org.oddjob.doc.html.HtmlVisitor;
 import org.oddjob.doc.loader.IncludeLoader;
-import org.oddjob.doc.loader.PlainTextLoader;
 import org.oddjob.doc.loader.JavaCodeLoader;
+import org.oddjob.doc.loader.PlainTextLoader;
 import org.oddjob.doc.loader.XmlLoader;
-import org.oddjob.doc.html.XmlToHtml;
 
-import javax.xml.transform.TransformerException;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,7 +42,9 @@ public class DocPostProcessor implements Runnable {
 			new GenericInjector(CustomTagNames.TEXT_RESOURCE_TAG, 
 							PlainTextLoader.fromResource(classLoader))
 			};
-		
+
+		HtmlVisitor htmlVisitor = HtmlVisitor.instance();
+
 		try {
 			BufferedReader reader = new BufferedReader(
 					new InputStreamReader(input));
@@ -61,13 +61,12 @@ public class DocPostProcessor implements Runnable {
 				boolean replaced = false;
 				for (Injector injector : injectors) {
 
-					try {
-						if (injector.parse(line, writer)) {
-							replaced = true;
-							break;
-						}
-					} catch (Exception e) {
-						writer.println(ExceptionToHtml.toHtml(e));
+					Optional<BeanDocElement> optionalElement = injector.parse(line);
+					if (optionalElement.isPresent()) {
+						String html = optionalElement.get()
+								.accept(htmlVisitor, DocContext.noLinks());
+						writer.println(html);
+						replaced = true;
 						break;
 					}
 				}
@@ -111,7 +110,7 @@ public class DocPostProcessor implements Runnable {
 	
 	interface Injector {
 		
-		boolean parse(String line, PrintWriter out) throws Exception;
+		Optional<BeanDocElement> parse(String line);
 	}
 	
 	class JavaCodeInjector implements Injector {	
@@ -123,20 +122,16 @@ public class DocPostProcessor implements Runnable {
 
 
 		@Override
-		public boolean parse(String line, PrintWriter out) throws IOException {
+		public Optional<BeanDocElement> parse(String line)  {
 			
 			Matcher matcher = pattern.matcher(line);
 			
 			if (!matcher.find()) {
-				return false;
+				return Optional.empty();
 			}
 
-			JavaCodeBlock java = javaCodeLoader.load(matcher.group(1));
-
-			out.println(JavaToHtml.toHtml(java));
-			
-			return true;
-		}		
+			return Optional.of(javaCodeLoader.load(matcher.group(1)));
+		}
 	}
 	
 	static class XMLResourceInjector implements Injector {
@@ -151,20 +146,16 @@ public class DocPostProcessor implements Runnable {
 		}
 
 		@Override
-		public boolean parse(String line, PrintWriter out) throws IOException, TransformerException {
+		public Optional<BeanDocElement> parse(String line) {
 			
 			Matcher matcher = pattern.matcher(line);
 			
 			if (!matcher.find()) {
-				return false;
+				return Optional.empty();
 			}
 
-			XmlBlock xml = resourceLoader.load(matcher.group(1));
-
-			out.println(XmlToHtml.toHtml(xml));
-			
-			return true;
-		}		
+			return Optional.of(resourceLoader.load(matcher.group(1)));
+		}
 	}
 	
 	class XMLFileInjector implements Injector {	
@@ -175,20 +166,16 @@ public class DocPostProcessor implements Runnable {
 		private final XmlLoader xmlLoader = XmlLoader.fromFile(baseDir);
 
 		@Override
-		public boolean parse(String line, PrintWriter out) throws IOException, TransformerException {
+		public Optional<BeanDocElement> parse(String line) {
 			
 			Matcher matcher = pattern.matcher(line);
 			
 			if (!matcher.find()) {
-				return false;
+				return Optional.empty();
 			}
 
-			XmlBlock xml = xmlLoader.load(matcher.group(1));
-
-			out.println(XmlToHtml.toHtml(xml));
-			
-			return true;
-		}		
+			return Optional.of(xmlLoader.load(matcher.group(1)));
+		}
 	}
 	
 	static class GenericInjector implements Injector {
@@ -204,18 +191,15 @@ public class DocPostProcessor implements Runnable {
 		}
 		
 		@Override
-		public boolean parse(String line, PrintWriter out) throws Exception {
+		public Optional<BeanDocElement> parse(String line) {
 			
 			Matcher matcher = pattern.matcher(line);
 			
 			if (!matcher.find()) {
-				return false;
+				return Optional.empty();
 			}
 			
-			out.println(loader.load(matcher.group(1)));
-			
-			return true;
-		}		
-		
+			return Optional.of(loader.load(matcher.group(1)));
+		}
 	}
 }

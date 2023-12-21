@@ -23,7 +23,7 @@ class PlainTextLoaderTest {
         Path parent = file.getParent();
         PlainTextLoader test = PlainTextLoader.fromFile(parent);
 
-        PreformattedBlock result = test.load(file.getFileName().toString());
+        PreformattedBlock result = (PreformattedBlock) test.load(file.getFileName().toString());
 
         String expected =
                         "Remember 2 < 3 & 5 > 4" + LS +
@@ -37,7 +37,8 @@ class PlainTextLoaderTest {
 
         PlainTextLoader test = PlainTextLoader.fromResource(getClass().getClassLoader());
 
-        PreformattedBlock result = test.load("org/oddjob/doc/loader/SomePlainText.txt");
+        PreformattedBlock result =
+                (PreformattedBlock) test.load("org/oddjob/doc/loader/SomePlainText.txt");
 
         String expected =
                         "Remember 2 < 3 & 5 > 4" + LS +

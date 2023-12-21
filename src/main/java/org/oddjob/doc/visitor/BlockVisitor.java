@@ -1,6 +1,8 @@
 package org.oddjob.doc.visitor;
 
 import com.sun.source.doctree.*;
+import org.oddjob.arooa.beandocs.element.BeanDocElement;
+import org.oddjob.arooa.beandocs.element.StandardElement;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -10,23 +12,23 @@ import java.util.function.Consumer;
  */
 public class BlockVisitor implements DocTreeVisitor<Void, VisitorContext> {
 
-    private final Consumer<? super String> beanDocConsumer;
+    private final Consumer<? super BeanDocElement> beanDocConsumer;
 
-    private BlockVisitor(Consumer<? super String> beanDocConsumer) {
+    private BlockVisitor(Consumer<? super BeanDocElement> beanDocConsumer) {
         this.beanDocConsumer = beanDocConsumer;
     }
 
     public static void visitAll(List<? extends DocTree> tags,
-                                Consumer<? super String> textConsumer,
+                                Consumer<? super BeanDocElement> docConsumer,
                                 VisitorContext visitorContext) {
 
-        BlockVisitor visitor = new BlockVisitor(textConsumer);
+        BlockVisitor visitor = new BlockVisitor(docConsumer);
         tags.forEach(tag -> tag.accept(visitor, visitorContext));
     }
 
     @Override
     public Void visitAttribute(AttributeTree node, VisitorContext visitorContext) {
-        beanDocConsumer.accept(node.toString());
+        beanDocConsumer.accept(StandardElement.of(node.toString()));
         return null;
     }
 
@@ -62,13 +64,13 @@ public class BlockVisitor implements DocTreeVisitor<Void, VisitorContext> {
 
     @Override
     public Void visitEndElement(EndElementTree node, VisitorContext visitorContext) {
-        beanDocConsumer.accept(node.toString());
+        beanDocConsumer.accept(StandardElement.of(node.toString()));
         return null;
     }
 
     @Override
     public Void visitEntity(EntityTree node, VisitorContext visitorContext) {
-        beanDocConsumer.accept(node.toString());
+        beanDocConsumer.accept(StandardElement.of(node.toString()));
         return null;
     }
 
@@ -80,7 +82,7 @@ public class BlockVisitor implements DocTreeVisitor<Void, VisitorContext> {
 
     @Override
     public Void visitIdentifier(IdentifierTree node, VisitorContext visitorContext) {
-        beanDocConsumer.accept(node.toString());
+        beanDocConsumer.accept(StandardElement.of(node.toString()));
         return null;
     }
 
@@ -92,7 +94,7 @@ public class BlockVisitor implements DocTreeVisitor<Void, VisitorContext> {
 
     @Override
     public Void visitLink(LinkTree node, VisitorContext visitorContext) {
-        beanDocConsumer.accept(visitorContext.processLink(node));
+        beanDocConsumer.accept(StandardElement.of(visitorContext.processLink(node)));
         return null;
     }
 
@@ -151,13 +153,13 @@ public class BlockVisitor implements DocTreeVisitor<Void, VisitorContext> {
 
     @Override
     public Void visitStartElement(StartElementTree node, VisitorContext visitorContext) {
-        beanDocConsumer.accept(node.toString());
+        beanDocConsumer.accept(StandardElement.of(node.toString()));
         return null;
     }
 
     @Override
     public Void visitText(TextTree node, VisitorContext visitorContext) {
-        beanDocConsumer.accept(node.toString());
+        beanDocConsumer.accept(StandardElement.of(node.toString()));
         return null;
     }
 

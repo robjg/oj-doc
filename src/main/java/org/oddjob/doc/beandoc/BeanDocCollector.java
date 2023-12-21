@@ -3,6 +3,10 @@ package org.oddjob.doc.beandoc;
 import org.oddjob.arooa.beandocs.WriteableBeanDoc;
 import org.oddjob.arooa.beandocs.WriteableExampleDoc;
 import org.oddjob.arooa.beandocs.WriteablePropertyDoc;
+import org.oddjob.arooa.beandocs.element.BeanDocElement;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Wraps {@link WriteableBeanDoc}.
@@ -18,25 +22,25 @@ public class BeanDocCollector implements TypeConsumers {
     @Override
     public BeanDocConsumer description() {
 
-        StringBuilder firstSentence = new StringBuilder();
+        List<BeanDocElement> firstSentence = new ArrayList<>();
 
-        StringBuilder description = new StringBuilder();
+        List<BeanDocElement> description = new ArrayList<>();
 
         return new BeanDocConsumer() {
             @Override
-            public void acceptFirstSentence(String text) {
-                firstSentence.append(text);
+            public void acceptFirstSentence(BeanDocElement element) {
+                firstSentence.add(element);
             }
 
             @Override
-            public void acceptBodyText(String text) {
-                description.append(text);
+            public void acceptBodyText(BeanDocElement element) {
+                description.add(element);
             }
 
             @Override
             public void close() {
-                beanDoc.setFirstSentence(firstSentence.toString());
-                beanDoc.setAllText(description.toString());
+                beanDoc.setFirstSentence(firstSentence);
+                beanDoc.setAllText(description);
             }
 
         };
@@ -47,26 +51,26 @@ public class BeanDocCollector implements TypeConsumers {
 
         WriteableExampleDoc exampleDoc = new WriteableExampleDoc();
 
-        StringBuilder firstSentence = new StringBuilder();
+        List<BeanDocElement> firstSentence = new ArrayList<>();
 
-        StringBuilder exampleDescription = new StringBuilder();
+        List<BeanDocElement> exampleDescription = new ArrayList<>();
 
         return new BeanDocConsumer() {
 
             @Override
-            public void acceptFirstSentence(String text) {
-                firstSentence.append(text);
+            public void acceptFirstSentence(BeanDocElement element) {
+                firstSentence.add(element);
             }
 
             @Override
-            public void acceptBodyText(String text) {
-                exampleDescription.append(text);
+            public void acceptBodyText(BeanDocElement element) {
+                exampleDescription.add(element);
             }
 
             @Override
             public void close() {
-                exampleDoc.setFirstSentence(firstSentence.toString());
-                exampleDoc.setAllText(exampleDescription.toString());
+                exampleDoc.setFirstSentence(firstSentence);
+                exampleDoc.setAllText(exampleDescription);
                 beanDoc.addExampleDoc(exampleDoc);
             }
         };
@@ -84,8 +88,8 @@ public class BeanDocCollector implements TypeConsumers {
             return null;
         }
 
-        StringBuilder firstSentence = new StringBuilder();
-        StringBuilder propertyDescription = new StringBuilder();
+        List<BeanDocElement> firstSentence = new ArrayList<>();
+        List<BeanDocElement> propertyDescription = new ArrayList<>();
 
         return new BeanDocConsumer.Property() {
 
@@ -95,19 +99,19 @@ public class BeanDocCollector implements TypeConsumers {
             }
 
             @Override
-            public void acceptFirstSentence(String text) {
-                firstSentence.append(text);
+            public void acceptFirstSentence(BeanDocElement element) {
+                firstSentence.add(element);
             }
 
             @Override
-            public void acceptBodyText(String text) {
-                propertyDescription.append(text);
+            public void acceptBodyText(BeanDocElement element) {
+                propertyDescription.add(element);
             }
 
             @Override
             public void close() {
-                writeablePropertyDoc.setFirstSentence(firstSentence.toString());
-                writeablePropertyDoc.setAllText(propertyDescription.toString());
+                writeablePropertyDoc.setFirstSentence(firstSentence);
+                writeablePropertyDoc.setAllText(propertyDescription);
                 beanDoc.addPropertyDoc(writeablePropertyDoc);
             }
         };

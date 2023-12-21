@@ -1,5 +1,6 @@
 package org.oddjob.doc.doclet;
 
+import org.oddjob.arooa.beandocs.element.BeanDocElement;
 import org.oddjob.doc.beandoc.BeanDocConsumer;
 import org.oddjob.doc.beandoc.TypeConsumers;
 
@@ -10,18 +11,18 @@ import java.util.Map;
 
 public class CaptureConsumer implements BeanDocConsumer {
 
-    private final StringBuilder firstSentence = new StringBuilder();
+    private final List<BeanDocElement> firstSentence = new ArrayList<>();
 
-    private final StringBuilder body = new StringBuilder();
+    private final List<BeanDocElement> body = new ArrayList<>();
 
     private boolean closed;
 
-    public String getFirstSentence() {
-        return firstSentence.toString();
+    public List<BeanDocElement> getFirstSentence() {
+        return firstSentence;
     }
 
-    public String getBody() {
-        return body.toString();
+    public List<BeanDocElement> getBody() {
+        return body;
     }
 
     public boolean isClosed() {
@@ -29,17 +30,17 @@ public class CaptureConsumer implements BeanDocConsumer {
     }
 
     @Override
-    public void acceptFirstSentence(String text) {
+    public void acceptFirstSentence(BeanDocElement element) {
         if (closed) {
             throw new IllegalStateException();
         }
 
-        firstSentence.append(text);
+        firstSentence.add(element);
     }
 
     @Override
-    public void acceptBodyText(String text) {
-        body.append(text);
+    public void acceptBodyText(BeanDocElement element) {
+        body.add(element);
     }
 
     @Override
@@ -49,11 +50,11 @@ public class CaptureConsumer implements BeanDocConsumer {
 
     public static class Type implements TypeConsumers {
 
-        private CaptureConsumer description = new CaptureConsumer();
+        private final CaptureConsumer description = new CaptureConsumer();
 
-        private Map<String, CaptureConsumer.Property> propertyMap = new HashMap<>();
+        private final Map<String, CaptureConsumer.Property> propertyMap = new HashMap<>();
 
-        private List<CaptureConsumer> examples = new ArrayList<>();
+        private final List<CaptureConsumer> examples = new ArrayList<>();
 
         private boolean closed;
 

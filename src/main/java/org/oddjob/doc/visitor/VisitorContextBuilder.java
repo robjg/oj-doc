@@ -4,6 +4,7 @@ import com.sun.source.doctree.LinkTree;
 import com.sun.source.doctree.LiteralTree;
 import com.sun.source.doctree.UnknownInlineTagTree;
 import jdk.javadoc.doclet.Reporter;
+import org.oddjob.arooa.beandocs.element.BeanDocElement;
 import org.oddjob.doc.util.InlineTagHelper;
 
 import javax.lang.model.element.Element;
@@ -63,7 +64,7 @@ public class VisitorContextBuilder {
         }
 
         @Override
-        public String processUnknownInline(UnknownInlineTagTree unknownTag) {
+        public BeanDocElement processUnknownInline(UnknownInlineTagTree unknownTag) {
             return inlineTagHelper.processUnknownInline(unknownTag, element);
         }
 

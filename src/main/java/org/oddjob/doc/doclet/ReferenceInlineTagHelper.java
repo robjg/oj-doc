@@ -5,13 +5,14 @@ import com.sun.source.doctree.LiteralTree;
 import com.sun.source.doctree.ReferenceTree;
 import com.sun.source.doctree.UnknownInlineTagTree;
 import com.sun.source.util.DocTrees;
+import org.oddjob.arooa.beandocs.element.BeanDocElement;
+import org.oddjob.arooa.beandocs.element.StandardElement;
 import org.oddjob.doc.util.DocUtil;
 import org.oddjob.doc.util.HtmlUtil;
 import org.oddjob.doc.util.InlineTagHelper;
-import org.oddjob.doc.util.TagletProvider;
+import org.oddjob.doc.util.LoaderProvider;
 
 import javax.lang.model.element.Element;
-import java.util.Collections;
 import java.util.function.Function;
 
 /**
@@ -21,7 +22,7 @@ public class ReferenceInlineTagHelper implements InlineTagHelper {
 
     private final DocTrees docTrees;
 
-    private final TagletProvider tagletProvider;
+    private final LoaderProvider loaderProvider;
 
     private final Function<String, String> refLookup;
 
@@ -30,12 +31,12 @@ public class ReferenceInlineTagHelper implements InlineTagHelper {
     private final String pathToRoot;
 
     public ReferenceInlineTagHelper(DocTrees docTrees,
-                                    TagletProvider tagletProvider,
+                                    LoaderProvider loaderProvider,
                                     Function<String, String> refLookup,
                                     Function<String, String> apiDirFunc,
                                     String pathToRoot) {
         this.docTrees = docTrees;
-        this.tagletProvider = tagletProvider;
+        this.loaderProvider = loaderProvider;
         this.refLookup = refLookup;
         this.apiDirFunc = apiDirFunc;
         this.pathToRoot = pathToRoot;
@@ -69,11 +70,11 @@ public class ReferenceInlineTagHelper implements InlineTagHelper {
     }
 
     @Override
-    public String processUnknownInline(UnknownInlineTagTree unknownTag, Element element) {
+    public BeanDocElement processUnknownInline(UnknownInlineTagTree unknownTag, Element element) {
 
-        return tagletProvider.tagletFor(unknownTag.getTagName())
-                .map(taglet -> taglet.toString(Collections.singletonList(unknownTag), element))
-                .orElseGet(unknownTag::toString);
+        return loaderProvider.loaderFor(unknownTag.getTagName())
+                .map(loader -> loader.load(DocUtil.unknownTagContent(unknownTag)))
+                .orElseGet(() -> StandardElement.of(unknownTag.toString()));
     }
 
     @Override

@@ -3,15 +3,13 @@ package org.oddjob.doc.taglet;
 import com.sun.source.doctree.DocTree;
 import com.sun.source.doctree.UnknownInlineTagTree;
 import jdk.javadoc.doclet.Taglet;
-import org.oddjob.arooa.beandocs.element.PreformattedBlock;
+import org.oddjob.doc.DocContext;
 import org.oddjob.doc.doclet.CustomTagNames;
-import org.oddjob.doc.html.ExceptionToHtml;
-import org.oddjob.doc.html.PlainTextToHtml;
+import org.oddjob.doc.html.HtmlVisitor;
 import org.oddjob.doc.loader.PlainTextLoader;
 import org.oddjob.doc.util.DocUtil;
 
 import javax.lang.model.element.Element;
-import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -48,14 +46,7 @@ public class PlainTextResourceTaglet implements Taglet {
 
         PlainTextLoader loader = PlainTextLoader.fromResource(classLoader);
 
-        try {
-            PreformattedBlock text = loader.load(resource);
-
-            return PlainTextToHtml.toHtml(text);
-
-        } catch (IOException e) {
-            return ExceptionToHtml.toHtml(e);
-        }
-
+        return loader.load(resource)
+                .accept(HtmlVisitor.instance(), DocContext.noLinks());
     }
 }

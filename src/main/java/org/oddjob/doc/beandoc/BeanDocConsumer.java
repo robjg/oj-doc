@@ -1,5 +1,7 @@
 package org.oddjob.doc.beandoc;
 
+import org.oddjob.arooa.beandocs.element.BeanDocElement;
+
 /**
  * Consumes text processed from the Oddjob Tags in Javadoc.
  */
@@ -8,16 +10,16 @@ public interface BeanDocConsumer extends AutoCloseable {
     /**
      * Accept in chunks the first sentence of the documentation.
      *
-     * @param text The next part of the first sentence.
+     * @param element The next part of the first sentence.
      */
-    void acceptFirstSentence(String text);
+    void acceptFirstSentence(BeanDocElement element);
 
     /**
      * Accept in chunks the full body of the documentation including the first sentence again.
      *
-     * @param text The next part of the full body.
+     * @param element The next part of the full body.
      */
-    void acceptBodyText(String text);
+    void acceptBodyText(BeanDocElement element);
 
     /**
      * Called when no more documentation is to be consumed.

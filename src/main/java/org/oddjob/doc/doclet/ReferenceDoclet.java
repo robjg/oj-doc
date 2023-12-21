@@ -16,8 +16,8 @@ import org.oddjob.arooa.deploy.ClassPathDescriptorFactory;
 import org.oddjob.arooa.deploy.LinkedDescriptor;
 import org.oddjob.arooa.standard.BaseArooaDescriptor;
 import org.oddjob.arooa.standard.StandardArooaSession;
-import org.oddjob.doc.taglet.UnknownInlineTagletProvider;
-import org.oddjob.doc.util.TagletProvider;
+import org.oddjob.doc.taglet.UnknownInlineLoaderProvider;
+import org.oddjob.doc.util.LoaderProvider;
 
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.ElementKind;
@@ -48,7 +48,6 @@ public class ReferenceDoclet implements Doclet {
     class Main {
 
         private final JobsAndTypes jats;
-
 
         public Main(String classPath, String descriptorResource) throws MalformedURLException {
 
@@ -109,11 +108,15 @@ public class ReferenceDoclet implements Doclet {
 
         boolean process(DocletEnvironment docEnv, String destination, String title) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
 
-            TagletProvider tagletProvider = new UnknownInlineTagletProvider(docEnv, ReferenceDoclet.this);
+            ClassLoader classLoader = Objects.requireNonNullElseGet(
+                    Thread.currentThread().getContextClassLoader(),
+                    () -> getClass().getClassLoader());
+
+            LoaderProvider loaderProvider = new UnknownInlineLoaderProvider(classLoader);
 
             InlineHelperProvider inlineHelperProvider = new ReferenceHelperProvider(
                     docEnv.getDocTrees(),
-                    tagletProvider,
+                    loaderProvider,
                     fqn -> {
                         BeanDoc beanDoc = jats.docFor(fqn);
                         if (beanDoc == null) {

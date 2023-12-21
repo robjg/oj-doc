@@ -17,5 +17,5 @@ public interface IncludeLoader {
 	 * @param path The resource or file path.
 	 * @return HTML text.
 	 */
-	BeanDocElement load(String path) throws Exception;
+	BeanDocElement load(String path);
 }

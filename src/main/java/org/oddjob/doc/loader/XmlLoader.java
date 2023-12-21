@@ -1,5 +1,7 @@
 package org.oddjob.doc.loader;
 
+import org.oddjob.arooa.beandocs.element.BeanDocElement;
+import org.oddjob.arooa.beandocs.element.ExceptionElement;
 import org.oddjob.arooa.beandocs.element.XmlBlock;
 
 import java.io.IOException;
@@ -32,15 +34,18 @@ public class XmlLoader extends AbstractLoader {
 	}
 
 	@Override
-	public XmlBlock load(String fileName) throws IOException {
+	public BeanDocElement load(String fileName) {
 
-		XmlBlock xmlBlock = new XmlBlock();
+		try {
+			String contents = doLoad(fileName);
 
-		String contents = doLoad(fileName);
+			XmlBlock xmlBlock = new XmlBlock();
+			xmlBlock.setXml(contents);
 
-		xmlBlock.setXml(contents);
+			return xmlBlock;
 
-		return xmlBlock;
+		} catch (IOException e) {
+			return ExceptionElement.of(e);
+		}
 	}
-
 }

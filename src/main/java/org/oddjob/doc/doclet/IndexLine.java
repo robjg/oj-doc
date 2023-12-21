@@ -1,12 +1,16 @@
 package org.oddjob.doc.doclet;
 
+import org.oddjob.arooa.beandocs.element.BeanDocElement;
+
+import java.util.List;
+
 public class IndexLine {
 
 	private final String className;
 	private final String name;
-	private final String firstSentence;
+	private final List<BeanDocElement> firstSentence;
 	
-	public IndexLine(String className, String name, String firstLine) {
+	public IndexLine(String className, String name, List<BeanDocElement> firstLine) {
 		this.className = className;
 		this.name = name;
 		this.firstSentence = firstLine;
@@ -20,7 +24,7 @@ public class IndexLine {
 		return name;
 	}
 	
-	public String getFirstSentence() {
+	public List<BeanDocElement> getFirstSentence() {
 		return firstSentence;
 	}
 }

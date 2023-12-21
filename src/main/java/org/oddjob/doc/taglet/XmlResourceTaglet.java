@@ -3,15 +3,13 @@ package org.oddjob.doc.taglet;
 import com.sun.source.doctree.DocTree;
 import com.sun.source.doctree.UnknownInlineTagTree;
 import jdk.javadoc.doclet.Taglet;
-import org.oddjob.arooa.beandocs.element.XmlBlock;
+import org.oddjob.doc.DocContext;
 import org.oddjob.doc.doclet.CustomTagNames;
-import org.oddjob.doc.html.ExceptionToHtml;
-import org.oddjob.doc.html.XmlToHtml;
+import org.oddjob.doc.html.HtmlVisitor;
 import org.oddjob.doc.loader.XmlLoader;
+import org.oddjob.doc.util.DocUtil;
 
 import javax.lang.model.element.Element;
-import javax.xml.transform.TransformerException;
-import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -41,21 +39,15 @@ public class XmlResourceTaglet implements Taglet {
 
         UnknownInlineTagTree inlineTagTree = (UnknownInlineTagTree) tags.get(0);
 
-        String resource = inlineTagTree.getContent().get(0).toString();
+        String resource = DocUtil.unknownTagContent(inlineTagTree);
 
         ClassLoader classLoader = Objects.requireNonNullElseGet(
                 Thread.currentThread().getContextClassLoader(),
                 () -> getClass().getClassLoader());
 
-        XmlLoader xmlLoader = XmlLoader.fromResource(classLoader);
+        XmlLoader loader = XmlLoader.fromResource(classLoader);
 
-        try {
-            XmlBlock xml = xmlLoader.load(resource);
-
-            return XmlToHtml.toHtml(xml);
-
-        } catch (IOException | TransformerException e) {
-            return ExceptionToHtml.toHtml(e);
-        }
+        return loader.load(resource)
+                .accept(HtmlVisitor.instance(), DocContext.noLinks());
     }
 }

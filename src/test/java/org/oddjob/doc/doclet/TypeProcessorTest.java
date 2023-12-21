@@ -4,13 +4,17 @@ import com.sun.source.doctree.DocTree;
 import com.sun.source.doctree.LinkTree;
 import com.sun.source.doctree.LiteralTree;
 import com.sun.source.doctree.UnknownInlineTagTree;
+import com.sun.source.util.DocTrees;
 import jdk.javadoc.doclet.Doclet;
 import jdk.javadoc.doclet.DocletEnvironment;
 import jdk.javadoc.doclet.Reporter;
 import jdk.javadoc.doclet.Taglet;
 import org.junit.jupiter.api.Test;
 import org.oddjob.OurDirs;
-import org.oddjob.doc.taglet.UnknownInlineTagletProvider;
+import org.oddjob.arooa.beandocs.element.BeanDocElement;
+import org.oddjob.arooa.beandocs.element.StandardElement;
+import org.oddjob.doc.html.HtmlVisitor;
+import org.oddjob.doc.taglet.UnknownInlineLoaderProvider;
 import org.oddjob.doc.util.InlineTagHelper;
 
 import javax.lang.model.SourceVersion;
@@ -53,34 +57,44 @@ class TypeProcessorTest {
                 "-doclet", TestDoclet.class.getName(),
                 srcPath.toString(), srcPath2.toString());
 
-        assertThat(beanDocConsumer.description().getFirstSentence(), is("First sentence in block tag."));
+        assertThat(HtmlVisitor.visitAll(beanDocConsumer.description().getFirstSentence()),
+                is("First sentence in block tag."));
 
-        assertThat(beanDocConsumer.description().getBody(), is(
+        assertThat(HtmlVisitor.visitAll(beanDocConsumer.description().getBody()),
+                is(
                 "First sentence in block tag. Some more stuff in the block tag. LINK: ThingWithSomeDoc.\n" +
                         " ** WORKED **. <p>And some html</p>."));
 
         CaptureConsumer exampleConsumer = beanDocConsumer.getExample(0);
-        assertThat(exampleConsumer.getFirstSentence(), is("This is an example."));
-        assertThat(exampleConsumer.getBody(), is("This is an example.\n\n Which can go over several lines.\n\n ** WORKED **"));
+        assertThat(HtmlVisitor.visitAll(exampleConsumer.getFirstSentence()),
+                is("This is an example."));
+        assertThat(HtmlVisitor.visitAll(exampleConsumer.getBody()),
+                is("This is an example.\n\n Which can go over several lines.\n\n ** WORKED **"));
         assertThat(exampleConsumer.isClosed(), is(true));
 
         CaptureConsumer somePropConsumer = beanDocConsumer.getProperty("someProp");
 
-        assertThat(somePropConsumer.getFirstSentence(), is("Some property"));
-        assertThat(somePropConsumer.getBody(), is("Some property"));
+        assertThat(HtmlVisitor.visitAll(somePropConsumer.getFirstSentence()),
+                is("Some property"));
+        assertThat(HtmlVisitor.visitAll(somePropConsumer.getBody()),
+                is("Some property"));
         assertThat(somePropConsumer.isClosed(), is(true));
 
         CaptureConsumer.Property anotherPropConsumer = beanDocConsumer.getProperty("anotherProp");
 
-        assertThat(anotherPropConsumer.getFirstSentence(), is("Another property"));
-        assertThat(anotherPropConsumer.getBody(), is("Another property"));
+        assertThat(HtmlVisitor.visitAll(anotherPropConsumer.getFirstSentence()),
+                is("Another property"));
+        assertThat(HtmlVisitor.visitAll(anotherPropConsumer.getBody()),
+                is("Another property"));
         assertThat(anotherPropConsumer.getRequired(), is("Yes"));
         assertThat(anotherPropConsumer.isClosed(), is(true));
 
         CaptureConsumer.Property superPropConsumer = beanDocConsumer.getProperty("superProp");
 
-        assertThat(superPropConsumer.getFirstSentence(), is("Property in super class."));
-        assertThat(superPropConsumer.getBody(), is("Property in super class."));
+        assertThat(HtmlVisitor.visitAll(superPropConsumer.getFirstSentence()),
+                is("Property in super class."));
+        assertThat(HtmlVisitor.visitAll(superPropConsumer.getBody()),
+                is("Property in super class."));
         assertThat(superPropConsumer.getRequired(), nullValue());
         assertThat(superPropConsumer.isClosed(), is(true));
     }
@@ -130,9 +144,9 @@ class TypeProcessorTest {
         }
 
         @Override
-        public String processUnknownInline(UnknownInlineTagTree unknownTag, Element element) {
+        public BeanDocElement processUnknownInline(UnknownInlineTagTree unknownTag, Element element) {
             if (unknownTag.getTagName().equals("our.inline")) {
-                return "** WORKED **";
+                return StandardElement.of("** WORKED **");
             }
             else {
                 throw new IllegalStateException("Unexpected: " + unknownTag);
@@ -177,11 +191,10 @@ class TypeProcessorTest {
 
         beanDocConsumer = new CaptureConsumer.Type();
 
-        DocletEnvironment docletEnvironment = mock(DocletEnvironment.class);
-        Doclet doclet = mock(Doclet.class);
+        DocTrees docTrees = mock(DocTrees.class);
 
-        inlineTagHelper = new ReferenceInlineTagHelper(docletEnvironment.getDocTrees(),
-                new UnknownInlineTagletProvider(docletEnvironment, doclet),
+        inlineTagHelper = new ReferenceInlineTagHelper(docTrees,
+                new UnknownInlineLoaderProvider(getClass().getClassLoader()),
                 null, null, null);
 
         ToolProvider toolProvider = ToolProvider.findFirst("javadoc")
@@ -190,6 +203,8 @@ class TypeProcessorTest {
                 "-doclet", TestDoclet.class.getName(),
                 srcPath.toString());
 
-        assertThat(beanDocConsumer.description().getBody(), containsString("stuff colour=\"green\""));
+        String html = HtmlVisitor.visitAll(beanDocConsumer.description().getBody());
+
+        assertThat(html, containsString("stuff colour=\"green\""));
     }
 }

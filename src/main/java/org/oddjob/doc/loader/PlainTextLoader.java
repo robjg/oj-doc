@@ -1,5 +1,7 @@
 package org.oddjob.doc.loader;
 
+import org.oddjob.arooa.beandocs.element.BeanDocElement;
+import org.oddjob.arooa.beandocs.element.ExceptionElement;
 import org.oddjob.arooa.beandocs.element.PreformattedBlock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,14 +32,18 @@ public class PlainTextLoader extends AbstractLoader {
     }
 
     @Override
-    public PreformattedBlock load(String fileName) throws IOException {
+    public BeanDocElement load(String fileName) {
 
-        PreformattedBlock preformattedBlock = new PreformattedBlock();
+        try {
+            String  contents = doLoad(fileName);
 
-        String contents = doLoad(fileName);
+            PreformattedBlock preformattedBlock = new PreformattedBlock();
+            preformattedBlock.setText(contents);
 
-        preformattedBlock.setText(contents);
+            return preformattedBlock;
+        } catch (IOException e) {
+            return ExceptionElement.of(e);
+        }
 
-        return preformattedBlock;
     }
 }

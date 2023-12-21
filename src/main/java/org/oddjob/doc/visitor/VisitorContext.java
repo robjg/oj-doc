@@ -3,6 +3,7 @@ package org.oddjob.doc.visitor;
 import com.sun.source.doctree.LinkTree;
 import com.sun.source.doctree.LiteralTree;
 import com.sun.source.doctree.UnknownInlineTagTree;
+import org.oddjob.arooa.beandocs.element.BeanDocElement;
 
 /**
  * Used for visiting Doc Tree Nodes.
@@ -21,7 +22,7 @@ public interface VisitorContext {
 
     String processLink(LinkTree linkTag);
 
-    String processUnknownInline(UnknownInlineTagTree unknownTag);
+    BeanDocElement processUnknownInline(UnknownInlineTagTree unknownTag);
 
     String processLiteral(LiteralTree literalTree);
 }

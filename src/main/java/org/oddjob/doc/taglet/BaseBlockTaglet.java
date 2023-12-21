@@ -15,6 +15,7 @@ import org.oddjob.doc.visitor.VisitorContextBuilder;
 
 import javax.lang.model.element.Element;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Base class for Taglet functionality for an Oddjob block tag.
@@ -40,8 +41,12 @@ abstract public class BaseBlockTaglet implements Taglet {
 
         this.env = env;
 
+        ClassLoader classLoader = Objects.requireNonNullElseGet(
+                Thread.currentThread().getContextClassLoader(),
+                () -> getClass().getClassLoader());
+
         inlineTagHelper = new TagletInlineTagHelper(
-                env.getDocTrees(), new UnknownInlineTagletProvider(env, doclet));
+                env.getDocTrees(), new UnknownInlineLoaderProvider(classLoader));
     }
 
     @Override

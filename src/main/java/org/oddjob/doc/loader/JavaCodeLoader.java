@@ -1,5 +1,7 @@
 package org.oddjob.doc.loader;
 
+import org.oddjob.arooa.beandocs.element.BeanDocElement;
+import org.oddjob.arooa.beandocs.element.ExceptionElement;
 import org.oddjob.arooa.beandocs.element.JavaCodeBlock;
 
 import java.io.IOException;
@@ -26,14 +28,17 @@ public class JavaCodeLoader extends AbstractLoader {
     }
 
     @Override
-    public JavaCodeBlock load(String fileName) throws IOException {
+    public BeanDocElement load(String fileName) {
 
-        JavaCodeBlock javaCodeBlock = new JavaCodeBlock();
+        try {
+            String contents = doLoad(fileName);
 
-        String contents = doLoad(fileName);
+            JavaCodeBlock javaCodeBlock = new JavaCodeBlock();
+            javaCodeBlock.setCode(contents);
 
-        javaCodeBlock.setCode(contents);
-
-        return javaCodeBlock;
+            return javaCodeBlock;
+        } catch (IOException e) {
+            return ExceptionElement.of(e);
+        }
     }
 }
