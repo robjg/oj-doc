@@ -3,7 +3,6 @@ package org.oddjob.doc.loader;
 import org.junit.jupiter.api.Test;
 import org.oddjob.arooa.beandocs.element.PreformattedBlock;
 
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Objects;
@@ -16,7 +15,7 @@ class PlainTextLoaderTest {
     static final String LS = "\r\n";
 
     @Test
-    void fileReadOk() throws URISyntaxException, IOException {
+    void fileReadOk() throws URISyntaxException {
 
         Path file = Path.of(Objects.requireNonNull(getClass().getResource("SomePlainText.txt")).toURI());
 
@@ -33,7 +32,7 @@ class PlainTextLoaderTest {
     }
 
     @Test
-    void resourceReadOk() throws IOException {
+    void resourceReadOk() {
 
         PlainTextLoader test = PlainTextLoader.fromResource(getClass().getClassLoader());
 

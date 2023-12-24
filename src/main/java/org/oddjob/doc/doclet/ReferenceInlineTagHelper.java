@@ -6,9 +6,10 @@ import com.sun.source.doctree.ReferenceTree;
 import com.sun.source.doctree.UnknownInlineTagTree;
 import com.sun.source.util.DocTrees;
 import org.oddjob.arooa.beandocs.element.BeanDocElement;
+import org.oddjob.arooa.beandocs.element.CodeElement;
+import org.oddjob.arooa.beandocs.element.LiteralElement;
 import org.oddjob.arooa.beandocs.element.StandardElement;
 import org.oddjob.doc.util.DocUtil;
-import org.oddjob.doc.util.HtmlUtil;
 import org.oddjob.doc.util.InlineTagHelper;
 import org.oddjob.doc.util.LoaderProvider;
 
@@ -78,8 +79,15 @@ public class ReferenceInlineTagHelper implements InlineTagHelper {
     }
 
     @Override
-    public String processLiteral(LiteralTree literalTree, Element element) {
-        String allText = literalTree.getBody().toString();
-        return HtmlUtil.escapeHtml(allText);
+    public BeanDocElement processLiteral(LiteralTree literalTree, Element element) {
+        String text = literalTree.getBody().toString();
+        switch (literalTree.getKind()) {
+            case CODE:
+                return CodeElement.of(text);
+            case LITERAL:
+                return LiteralElement.of(text);
+            default:
+                return StandardElement.of("[Unsupported Literal Kind " + literalTree.getKind() + "]: " + text);
+        }
     }
 }

@@ -16,5 +16,5 @@ public interface InlineTagHelper {
 
     BeanDocElement processUnknownInline(UnknownInlineTagTree unknownTag, Element element);
 
-    String processLiteral(LiteralTree literalTree, Element element);
+    BeanDocElement processLiteral(LiteralTree literalTree, Element element);
 }

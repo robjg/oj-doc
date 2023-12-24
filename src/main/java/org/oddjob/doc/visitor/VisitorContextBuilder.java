@@ -69,7 +69,7 @@ public class VisitorContextBuilder {
         }
 
         @Override
-        public String processLiteral(LiteralTree literalTree) {
+        public BeanDocElement processLiteral(LiteralTree literalTree) {
             return inlineTagHelper.processLiteral(literalTree, element);
         }
     }

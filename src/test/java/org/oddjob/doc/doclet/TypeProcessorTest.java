@@ -9,6 +9,7 @@ import jdk.javadoc.doclet.Doclet;
 import jdk.javadoc.doclet.DocletEnvironment;
 import jdk.javadoc.doclet.Reporter;
 import jdk.javadoc.doclet.Taglet;
+import org.hamcrest.io.FileMatchers;
 import org.junit.jupiter.api.Test;
 import org.oddjob.OurDirs;
 import org.oddjob.arooa.beandocs.element.BeanDocElement;
@@ -154,7 +155,7 @@ class TypeProcessorTest {
         }
 
         @Override
-        public String processLiteral(LiteralTree literalTree, Element element) {
+        public BeanDocElement processLiteral(LiteralTree literalTree, Element element) {
             throw new IllegalStateException("Unexpected!");
         }
     }
@@ -206,5 +207,33 @@ class TypeProcessorTest {
         String html = HtmlVisitor.visitAll(beanDocConsumer.description().getBody());
 
         assertThat(html, containsString("stuff colour=\"green\""));
+    }
+
+    @Test
+    void codeAndLiterals() {
+
+        Path srcPath = OurDirs.relativePath("src/test/java/foo/literal/ThingWithSomeLiterals.java");
+
+        assertThat(srcPath.toFile(), FileMatchers.anExistingFile());
+
+        reporter = mock(Reporter.class);
+
+        beanDocConsumer = new CaptureConsumer.Type();
+
+        DocTrees docTrees = mock(DocTrees.class);
+
+        inlineTagHelper = new ReferenceInlineTagHelper(docTrees,
+                new UnknownInlineLoaderProvider(getClass().getClassLoader()),
+                null, null, null);
+
+        ToolProvider toolProvider = ToolProvider.findFirst("javadoc")
+                .orElseThrow(() -> new IllegalArgumentException("No JavaDco"));
+        int result = toolProvider.run(System.out, System.err,
+                "-doclet", TestDoclet.class.getName(),
+                srcPath.toString());
+
+        String html = HtmlVisitor.visitAll(beanDocConsumer.description().getBody());
+
+        assertThat(html, containsString("Some <pre>java.lang.String</pre>s and also x &#62; y."));
     }
 }

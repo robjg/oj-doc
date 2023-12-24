@@ -58,9 +58,18 @@ public class HtmlVisitor implements ElementVisitor<DocContext, String> {
 
     @Override
     public String visitException(ExceptionElement element, DocContext context) {
-        return ExceptionToHtml.toHtml(element);
+        return HtmlUtil.toHtml(element);
     }
 
+    @Override
+    public String visitCode(CodeElement element, DocContext context) {
+        return HtmlUtil.toHtml(element);
+    }
+
+    @Override
+    public String visitLiteral(LiteralElement element, DocContext context) {
+        return HtmlUtil.toHtml(element);
+    }
     @Override
     public String visitStandard(StandardElement element, DocContext context) {
         return element.getText();

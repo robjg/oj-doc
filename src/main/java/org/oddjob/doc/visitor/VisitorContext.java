@@ -24,5 +24,5 @@ public interface VisitorContext {
 
     BeanDocElement processUnknownInline(UnknownInlineTagTree unknownTag);
 
-    String processLiteral(LiteralTree literalTree);
+    BeanDocElement processLiteral(LiteralTree literalTree);
 }

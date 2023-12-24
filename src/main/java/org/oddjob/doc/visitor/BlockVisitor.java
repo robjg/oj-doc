@@ -100,6 +100,7 @@ public class BlockVisitor implements DocTreeVisitor<Void, VisitorContext> {
 
     @Override
     public Void visitLiteral(LiteralTree node, VisitorContext visitorContext) {
+        beanDocConsumer.accept(visitorContext.processLiteral(node));
         return null;
     }
 

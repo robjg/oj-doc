@@ -6,9 +6,9 @@ import com.sun.source.doctree.ReferenceTree;
 import com.sun.source.doctree.UnknownInlineTagTree;
 import com.sun.source.util.DocTrees;
 import org.oddjob.arooa.beandocs.element.BeanDocElement;
+import org.oddjob.arooa.beandocs.element.LiteralElement;
 import org.oddjob.arooa.beandocs.element.StandardElement;
 import org.oddjob.doc.util.DocUtil;
-import org.oddjob.doc.util.HtmlUtil;
 import org.oddjob.doc.util.InlineTagHelper;
 import org.oddjob.doc.util.LoaderProvider;
 
@@ -57,8 +57,7 @@ public class TagletInlineTagHelper implements InlineTagHelper {
     }
 
     @Override
-    public String processLiteral(LiteralTree literalTree, Element element) {
-        String allText = literalTree.getBody().toString();
-        return HtmlUtil.escapeHtml(allText);
+    public BeanDocElement processLiteral(LiteralTree literalTree, Element element) {
+        return LiteralElement.of(literalTree.getBody().toString());
     }
 }
