@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<oddjob id="oddjob">
+    <job>
+        <sequential>
+            <jobs>
+                <properties>
+                    <values>
+                        <file file="${oddjob.dir}/../../../.." key="base.dir"/>
+                        <file file="${base.dir}/target/reference" key="reference.dir"/>
+                        <file file="${base.dir}/.." key="project.dir"/>
+                    </values>
+                </properties>
+                <resolve:resolve id="oddjobResolve" name="Oddjob Resolve" xmlns:resolve="oddjob:resolve">
+                    <dependencies>
+                        <resolve:dependency coords="uk.co.rgordon:oddjob:1.7.0-SNAPSHOT"/>
+                    </dependencies>
+                </resolve:resolve>
+                <variables id="vars">
+                    <loaderPath>
+                        <files>
+                            <list>
+                                <file file="${project.dir}/oddjob/target/test-classes"/>
+                            </list>
+                        </files>
+                    </loaderPath>
+                </variables>
+                <bean class="org.oddjob.doc.doclet.ReferenceMain" classPath="${oddjobResolve.resolvedFilesArray}" directory="${reference.dir}" packages="org.oddjob" sourcepath="${project.dir}/oddjob/src/main/java"
+                loaderPath="${vars.loaderPath}">
+                </bean>
+            </jobs>
+        </sequential>
+    </job>
+</oddjob>

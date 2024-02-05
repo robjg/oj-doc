@@ -1,7 +1,7 @@
 package org.oddjob.tools;
 
 import org.oddjob.arooa.beandocs.element.BeanDocElement;
-import org.oddjob.doc.DocContext;
+import org.oddjob.doc.html.HtmlContext;
 import org.oddjob.doc.doclet.CustomTagNames;
 import org.oddjob.doc.html.HtmlVisitor;
 import org.oddjob.doc.loader.IncludeLoader;
@@ -64,7 +64,7 @@ public class DocPostProcessor implements Runnable {
 					Optional<BeanDocElement> optionalElement = injector.parse(line);
 					if (optionalElement.isPresent()) {
 						String html = optionalElement.get()
-								.accept(htmlVisitor, DocContext.noLinks());
+								.accept(htmlVisitor, HtmlContext.noLinks());
 						writer.println(html);
 						replaced = true;
 						break;

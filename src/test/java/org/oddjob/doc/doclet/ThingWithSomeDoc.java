@@ -29,7 +29,7 @@ public class ThingWithSomeDoc extends ThingWithSomeDocBase {
      * @oddjob.required Yes
      *
      */
-    void setAnotherProp() {
+    public void setAnotherProp() {
 
     }
 }

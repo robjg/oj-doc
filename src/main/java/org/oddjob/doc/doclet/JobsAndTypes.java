@@ -46,12 +46,8 @@ public class JobsAndTypes {
 			String className = beanDoc.getClassName();
 
 			// is, bean are jobs and types - they need to share the doc.
-			WriteableBeanDoc list = docsByName.get(className);
-			if (list == null) {
-				list = beanDoc;
-				docsByName.put(className, list);
-			}
-			into.put(beanDoc.getName(), list);
+            WriteableBeanDoc list = docsByName.computeIfAbsent(className, k -> beanDoc);
+            into.put(beanDoc.getName(), list);
 		}		
     }
     
@@ -82,4 +78,12 @@ public class JobsAndTypes {
     public Iterable<? extends BeanDoc> all() {
     	return docsByName.values();
     }
+
+	@Override
+	public String toString() {
+		return "JobsAndTypes{" +
+				"jobDocs Count=" + jobDocs.size() +
+				", typeDocs Count=" + typeDocs.size() +
+				'}';
+	}
 }

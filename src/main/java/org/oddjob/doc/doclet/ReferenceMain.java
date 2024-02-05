@@ -3,13 +3,10 @@ package org.oddjob.doc.doclet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.file.Path;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.spi.ToolProvider;
 
@@ -28,8 +25,13 @@ public class ReferenceMain implements Callable<Integer> {
 
     private String packages;
 
-    private ClassLoader classLoader;
+    private String classPath;
 
+    private String docletPath;
+
+    private String loaderPath;
+
+    private boolean verbose;
 
     public static void main(String... args) {
 
@@ -51,18 +53,8 @@ public class ReferenceMain implements Callable<Integer> {
                 main.setDirectory(args[++i]);
                 continue;
             }
-            if ("-xcp".equals(arg)) {
-                String xcp = args[++i];
-                String[] cps = xcp.split(File.pathSeparator);
-                URL[] urls = new URL[cps.length];
-                for (int j = 0; j < urls.length; ++j) {
-                    try {
-                        urls[j] = Path.of(cps[j]).toUri().toURL();
-                    } catch (MalformedURLException e) {
-                        throw new IllegalArgumentException("Failed creating Extra Classpath from " + xcp, e);
-                    }
-                }
-                main.setClassLoader(URLClassLoader.newInstance(urls));
+            if ("-loaderpath".equals(arg)) {
+                main.setLoaderPath(args[++i]);
                 continue;
             }
             if (i == args.length - 1) {
@@ -85,26 +77,36 @@ public class ReferenceMain implements Callable<Integer> {
         ToolProvider toolProvider = ToolProvider.findFirst("javadoc")
                 .orElseThrow(() -> new IllegalArgumentException("No JavaDco"));
 
-        String[] args = { "-doclet", ReferenceDoclet.class.getName(),
-                "-sourcepath", sourcepath,
-                "-d", dest,
-                "-private",
-                packages };
-
-        logger.info("Running javadoc with {}", Arrays.toString(args));
-
-        ClassLoader classLoader = Objects.requireNonNullElse(this.classLoader, getClass().getClassLoader());
-
-        ClassLoader existing = Thread.currentThread().getContextClassLoader();
-        try {
-            Thread.currentThread().setContextClassLoader(classLoader);
-
-            return toolProvider.run(System.out, System.err, args);
+        List<String> args = new ArrayList<>();
+        Optional.ofNullable(this.classPath).ifPresent(dp -> {
+            args.add("-classpath");
+            args.add(classPath);
+        });
+        args.add("-doclet");
+        args.add(ReferenceDoclet.class.getName());
+        Optional.ofNullable(this.docletPath).ifPresent(dp -> {
+            args.add("-docletpath");
+            args.add(dp);
+        });
+        args.add("-sourcepath");
+        args.add(sourcepath);
+        args.add("--ignore-source-errors");
+        args.add("-d");
+        args.add(dest);
+        args.add("-private");
+        args.add("-subpackages");
+        args.add(packages);
+        if (this.verbose) {
+            args.add("-verbose");
         }
-        finally {
-            Thread.currentThread().setContextClassLoader(existing);
-        }
+        Optional.ofNullable(this.loaderPath).ifPresent(lp -> {
+            args.add("-loaderpath");
+            args.add(loaderPath);
+        });
 
+        logger.info("Running javadoc with {}", args);
+
+        return toolProvider.run(System.out, System.err, args.toArray(new String[0]));
     }
 
     public String getName() {
@@ -123,6 +125,22 @@ public class ReferenceMain implements Callable<Integer> {
         this.sourcepath = sourcepath;
     }
 
+    public String getClassPath() {
+        return classPath;
+    }
+
+    public void setClassPath(String classPath) {
+        this.classPath = classPath;
+    }
+
+    public String getDocletPath() {
+        return docletPath;
+    }
+
+    public void setDocletPath(String docletPath) {
+        this.docletPath = docletPath;
+    }
+
     public String getDirectory() {
         return directory;
     }
@@ -139,12 +157,12 @@ public class ReferenceMain implements Callable<Integer> {
         this.packages = packages;
     }
 
-    public ClassLoader getClassLoader() {
-        return classLoader;
+    public String getLoaderPath() {
+        return loaderPath;
     }
 
-    public void setClassLoader(ClassLoader classLoader) {
-        this.classLoader = classLoader;
+    public void setLoaderPath(String loaderPath) {
+        this.loaderPath = loaderPath;
     }
 
     @Override

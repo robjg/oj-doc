@@ -5,6 +5,7 @@ package org.oddjob.doc.doclet;
 
 import jdk.javadoc.doclet.Reporter;
 import org.oddjob.arooa.beandocs.BeanDoc;
+import org.oddjob.arooa.beandocs.BeanDocArchive;
 import org.oddjob.arooa.beandocs.WriteableBeanDoc;
 import org.oddjob.doc.beandoc.BeanDocCollector;
 import org.oddjob.doc.util.DocUtil;
@@ -21,7 +22,7 @@ import java.util.List;
  * 
  * @author Rob Gordon.
  */
-public class Archiver {
+public class Archiver implements BeanDocArchive {
 
 	private final JobsAndTypes jats;
 
@@ -52,40 +53,45 @@ public class Archiver {
 		elementProcessor.process(element, new BeanDocCollector(beanDoc));
 
     }
-    
+
     /**
-     * Jobs in index order.
+     * Job Doc in index order.
      * 
-     * @return An array of PageData objects.
+     * @return A List of BeanDoc.
      */
-    public IndexLine[] getJobData() {
-    	List<IndexLine> lines = new ArrayList<>();
+	@Override
+    public List<BeanDoc> allJobDoc() {
+    	List<BeanDoc> docs = new ArrayList<>();
     	for (String name : jats.jobs()) {
     		BeanDoc beanDoc = jats.docForJob(name);
-    		lines.add(new IndexLine(beanDoc.getClassName(), name,
-    				beanDoc.getFirstSentence()));
+    		docs.add(beanDoc);
     	}
-    	return lines.toArray(new IndexLine[0]);
+    	return docs;
     }
-    
+
     /**
-     * Types in index order.
-     * 
-     * @return An array of PageData objects
+     * Type Doc in index order.
+     *
+	 * @return A List of BeanDoc.
      */
-    public IndexLine[] getTypeData() {
-    	List<IndexLine> lines = new ArrayList<>();
+	@Override
+    public List<BeanDoc> allTypeDoc() {
+    	List<BeanDoc> docs = new ArrayList<>();
     	for (String name : jats.types()) {
     		BeanDoc beanDoc = jats.docForType(name);
-    		lines.add(new IndexLine(beanDoc.getClassName(), name,
-    				beanDoc.getFirstSentence()));
+    		docs.add(beanDoc);
     	}
-    	return lines.toArray(new IndexLine[0]);
+    	return docs;
     }
     
     public Iterable<? extends BeanDoc> getAll() {
     	return jats.all();
     }
 
-
+	@Override
+	public String toString() {
+		return "Archiver{" +
+				jats +
+				'}';
+	}
 }

@@ -1,7 +1,6 @@
 package org.oddjob.doc.html;
 
 import org.oddjob.arooa.beandocs.element.*;
-import org.oddjob.doc.DocContext;
 
 import javax.xml.transform.TransformerException;
 import java.io.IOException;
@@ -10,36 +9,36 @@ import java.util.List;
 /**
  * Visit Elements and convert them to HTML.
  */
-public class HtmlVisitor implements ElementVisitor<DocContext, String> {
+public class HtmlVisitor implements DocElementVisitor<HtmlContext, String> {
 
     public static HtmlVisitor instance() {
         return new HtmlVisitor();
     }
 
-    public static String visitAll(List<BeanDocElement> elements) {
+    public static String visitAll(List<? extends BeanDocElement> elements, HtmlContext htmlContext) {
 
         HtmlVisitor htmlVisitor = HtmlVisitor.instance();
-        DocContext docContext = DocContext.noLinks();
 
         StringBuilder builder = new StringBuilder();
         for (BeanDocElement element : elements) {
-            builder.append(element.accept(htmlVisitor, docContext));
+            builder.append(element.accept(htmlVisitor, htmlContext));
         }
         return builder.toString();
     }
 
     @Override
-    public String visitInternalLink(InternalLink element, DocContext context) {
-        return null;
+    public String visitInternalLink(LinkElement element, HtmlContext context) {
+
+        return context.hyperlinkFor(element);
     }
 
     @Override
-    public String visitPreformattedBlock(PreformattedBlock element, DocContext context) {
+    public String visitPreformattedBlock(PreformattedBlock element, HtmlContext context) {
         return PlainTextToHtml.toHtml(element);
     }
 
     @Override
-    public String visitJavaCodeBlock(JavaCodeBlock element, DocContext context) {
+    public String visitJavaCodeBlock(JavaCodeBlock element, HtmlContext context) {
         try {
             return JavaToHtml.toHtml(element);
         } catch (IOException e) {
@@ -48,7 +47,7 @@ public class HtmlVisitor implements ElementVisitor<DocContext, String> {
     }
 
     @Override
-    public String visitXmlBlock(XmlBlock element, DocContext context) {
+    public String visitXmlBlock(XmlBlock element, HtmlContext context) {
         try {
             return XmlToHtml.toHtml(element);
         } catch (TransformerException e) {
@@ -57,21 +56,21 @@ public class HtmlVisitor implements ElementVisitor<DocContext, String> {
     }
 
     @Override
-    public String visitException(ExceptionElement element, DocContext context) {
+    public String visitException(ExceptionElement element, HtmlContext context) {
         return HtmlUtil.toHtml(element);
     }
 
     @Override
-    public String visitCode(CodeElement element, DocContext context) {
+    public String visitCode(CodeElement element, HtmlContext context) {
         return HtmlUtil.toHtml(element);
     }
 
     @Override
-    public String visitLiteral(LiteralElement element, DocContext context) {
+    public String visitLiteral(LiteralElement element, HtmlContext context) {
         return HtmlUtil.toHtml(element);
     }
     @Override
-    public String visitStandard(StandardElement element, DocContext context) {
+    public String visitStandard(StandardElement element, HtmlContext context) {
         return element.getText();
     }
 }

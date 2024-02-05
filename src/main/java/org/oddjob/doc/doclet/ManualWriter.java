@@ -3,18 +3,16 @@
  */
 package org.oddjob.doc.doclet;
 
-import org.oddjob.arooa.ConfiguredHow;
 import org.oddjob.arooa.beandocs.BeanDoc;
-import org.oddjob.arooa.beandocs.ExampleDoc;
-import org.oddjob.arooa.beandocs.PropertyDoc;
-import org.oddjob.arooa.beandocs.element.BeanDocElement;
-import org.oddjob.doc.html.HtmlVisitor;
+import org.oddjob.arooa.beandocs.BeanDocArchive;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Creates the reference files.
@@ -25,160 +23,59 @@ public class ManualWriter {
 
     public static final String COPYWRITE = "(c) R Gordon Ltd 2005 - Present";
 
-    private final File directory;
-
-    private final String title;
-
-    public ManualWriter(String directory, String title) {
-        this.directory = new File(directory);
-        this.title = title == null ? "Oddjob Reference" : title;
+    private final ReferenceHtmlPageWriter pageWriter;
+    public ManualWriter(String directory, String title, InlineHelperProvider helperProvider) {
+        this.pageWriter = new ReferenceHtmlPageWriter(
+                Objects.requireNonNullElse(title, "Oddjob Reference"),
+                Path.of(directory),
+                helperProvider);
     }
 
-    protected String toHtml(List<BeanDocElement> elements, String whenMissing) {
-        if (elements == null || elements.isEmpty()) {
-            return whenMissing;
-        } else {
-            return HtmlVisitor.visitAll(elements);
-        }
-    }
 
     /**
      * Write a single reference page.
      *
      * @param beanDoc
      */
-    public void writePage(BeanDoc beanDoc) {
+    public IndexLine writePage(BeanDoc beanDoc) {
 
-        PrintWriter out;
-        try {
-            File file = new File(directory, getFileName(beanDoc.getClassName()));
-            file.getParentFile().mkdirs();
-            out = new PrintWriter(
-                    new FileOutputStream(file));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        out.println("<html>");
-        out.println("  <head>");
-        out.println("    <title>" + title + " - " +
-                beanDoc.getName() + "</title>");
-        out.println("  </head>");
-        out.println("  <body>");
-        out.println("  [<a href=\"" + getIndexFile(beanDoc.getClassName()) +
-                "\">Index</a>]");
-        out.println("    <h1>" + beanDoc.getName() + "</h1>");
-        out.println("    <hr/>");
-        out.println(toHtml(beanDoc.getAllText(), "No Description."));
-
-        PropertyDoc[] propertyDocs = beanDoc.getPropertyDocs();
-
-        if (propertyDocs.length > 0) {
-            out.println("    <hr/>");
-            out.println("    <h3>Property Summary</h3>");
-            out.println("    <table width='100%' border='1'" +
-                    " cellpadding='3' cellspacing='0'>");
-            int i = 0;
-            for (PropertyDoc elem : propertyDocs) {
-                if (ConfiguredHow.HIDDEN == elem.getConfiguredHow()) {
-                    continue;
-                }
-                out.println("    <tr>");
-                out.println("      <td><a href='#property" + ++i + "'>"
-                        + elem.getPropertyName() + "</a></td>");
-                out.println("      <td>" +
-                        toHtml(elem.getFirstSentence(), "&nbsp;") +
-                        "</td>");
-                out.println("    </tr>");
-            }
-            out.println("    </table>");
-        }
-
-        ExampleDoc[] exampleDocs = beanDoc.getExampleDocs();
-
-        if (exampleDocs.length > 0) {
-            out.println("    <hr/>");
-            out.println("    <h3>Example Summary</h3>");
-            out.println("    <table width='100%' border='1'" +
-                    " cellpadding='3' cellspacing='0'>");
-            int i = 0;
-            for (ExampleDoc elem : exampleDocs) {
-                out.println("    <tr>");
-                out.println("      <td><a href='#example" + ++i +
-                        "'>Example " + i + "</a></td>");
-                out.println("      <td>" +
-                        toHtml(elem.getFirstSentence(), "&nbsp;") +
-                        "</td>");
-                out.println("    </tr>");
-            }
-            out.println("    </table>");
-        }
-
-        if (propertyDocs.length > 0) {
-            out.println("    <hr/>");
-            out.println("    <h3>Property Detail</h3>");
-            int i = 0;
-            for (PropertyDoc elem : propertyDocs) {
-                if (ConfiguredHow.HIDDEN == elem.getConfiguredHow()) {
-                    continue;
-                }
-                out.println("    <a name='property" + ++i + "'><h4>" +
-                        elem.getPropertyName() + "</h4></a>");
-                out.println("      <table style='font-size:smaller'>");
-                if (elem.getAccess() != PropertyDoc.Access.READ_ONLY) {
-                    out.println("      <tr><td><i>Configured By</i></td><td>" +
-                            elem.getConfiguredHow() + "</td></tr>");
-                }
-                out.println("      <tr><td><i>Access</i></td><td>" +
-                        elem.getAccess() + "</td></tr>");
-                String required = elem.getRequired();
-                if (required != null) {
-                    out.println("      <tr><td><i>Required</i></td><td>" +
-                            required + "</td></tr>");
-                }
-                out.println("      </table>");
-                out.println("      <p>");
-                out.println(toHtml(elem.getAllText(), ""));
-                out.println("      </p>");
-            }
-        }
-
-        if (exampleDocs.length > 0) {
-            out.println("    <hr/>");
-            out.println("    <h3>Examples</h3>");
-            int i = 0;
-            for (ExampleDoc example : exampleDocs) {
-                out.println("    <a name='example" + ++i +
-                        "'><h4>Example " + i + "</h4></a>");
-                out.println("    <p>");
-                out.println(toHtml(example.getAllText(), ""));
-                out.println("    </p>");
-            }
-        }
-        out.println("    <hr/>");
-        out.println("    <font size='-1' align='center'>" + COPYWRITE + "</font>");
-        out.println("	 </body>");
-        out.println("  </html>");
-
-        out.close();
+        return pageWriter.writePage(beanDoc);
     }
 
     /**
      * Create the index.
      *
-     * @param jobs
-     * @param types
+     * @param jobs Array of Index Lines for the jobs
+     * @param types Array of Index Lines for the types.
      */
-    public void writeIndex(IndexLine[] jobs, IndexLine[] types) {
+    public void writeIndex(List<? extends IndexLine> jobs,
+                           List<? extends IndexLine> types) {
 
-        PrintWriter out;
-        try {
-            out = new PrintWriter(
-                    new FileOutputStream(
-                            new File(directory, "index.html")));
+        Path directory = pageWriter.getRootDirectory();
+
+        Path indexFile = directory.resolve("index.html");
+
+        try (PrintWriter out = new PrintWriter(new FileWriter(indexFile.toFile()))) {
+
+            writeIndex(jobs, types, out);
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Create the index.
+     *
+     * @param jobs Array of Index Lines for the jobs
+     * @param types Array of Index Lines for the types.
+     * @param out The writer.
+     */
+    public void writeIndex(List<? extends IndexLine> jobs,
+                           List<? extends IndexLine> types,
+                           PrintWriter out) {
+
+        String title = pageWriter.getTitle();
 
         out.println("<html>");
         out.println("  <head>");
@@ -192,10 +89,9 @@ public class ManualWriter {
         out.println("      <ul>");
         for (IndexLine beanDoc : jobs) {
             out.println("        <li>");
-            out.println("          <a href='" + getFileName(
-                    beanDoc.getClassName())
+            out.println("          <a href='" + beanDoc.getFileName()
                     + "'>" + beanDoc.getName() +
-                    "</a> - " + toHtml(beanDoc.getFirstSentence(), ""));
+                    "</a> - " + beanDoc.getFirstSentence());
             out.println("        </li>");
         }
         out.println("      </ul></li>");
@@ -203,10 +99,9 @@ public class ManualWriter {
         out.println("      <ul>");
         for (IndexLine beanDoc : types) {
             out.println("        <li>");
-            out.println("          <a href='" + getFileName(
-                    beanDoc.getClassName())
+            out.println("          <a href='" + beanDoc.getFileName()
                     + "'>" + beanDoc.getName() +
-                    "</a> - " + toHtml(beanDoc.getFirstSentence(), ""));
+                    "</a> - " + beanDoc.getFirstSentence());
             out.println("        </li>");
         }
         out.println("      </ul></li>");
@@ -220,40 +115,22 @@ public class ManualWriter {
         out.close();
     }
 
-    public void writeAll(Iterable<? extends BeanDoc> all) {
+    public List<IndexLine> writeAll(List<? extends BeanDoc> all) {
+        List<IndexLine> indexLines = new ArrayList<>(all.size());
+
         for (BeanDoc beanDoc : all) {
-            writePage(beanDoc);
+            indexLines.add(writePage(beanDoc));
         }
+
+        return  indexLines;
     }
 
-    public void createManual(Archiver archiver) {
-        writeIndex(archiver.getJobData(), archiver.getTypeData());
-        writeAll(archiver.getAll());
+    public void createManual(BeanDocArchive archive) {
 
+        List<IndexLine> jobIndexLines = writeAll(archive.allJobDoc());
+        List<IndexLine> typeIndexLines = writeAll(archive.allTypeDoc());
+
+        writeIndex(jobIndexLines, typeIndexLines);
     }
 
-    /**
-     * Get the file name the page data should be created in.
-     *
-     * @return The file name.
-     */
-    public String getFileName(String className) {
-        return className.replace('.', '/') + ".html";
-    }
-
-    /**
-     * Get the index file. This is a reference back and will depend
-     * on the package depth.
-     *
-     * @return The file name.
-     */
-    public static String getIndexFile(String className) {
-
-        StringBuilder path = new StringBuilder();
-        int start = 0;
-        while ((start = className.indexOf('.', start) + 1) > 0) {
-            path.append("../");
-        }
-        return path + "index.html";
-    }
 }

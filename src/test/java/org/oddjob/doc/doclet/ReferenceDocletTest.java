@@ -70,7 +70,7 @@ public class ReferenceDocletTest {
 		int result = ReferenceMain.mainCall(
 				"-sourcepath", oddjobSrc.toString(),
 				"-d", dest.toString(),
-				"-xcp", includes.toString());
+				"-loaderpath", includes.toString());
 
 		assertThat(result, is(0));
 

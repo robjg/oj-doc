@@ -1,31 +1,30 @@
 package org.oddjob.doc.doclet;
 
 import com.sun.source.doctree.DocTree;
-import com.sun.source.doctree.LinkTree;
-import com.sun.source.doctree.LiteralTree;
-import com.sun.source.doctree.UnknownInlineTagTree;
 import com.sun.source.util.DocTrees;
 import jdk.javadoc.doclet.Doclet;
 import jdk.javadoc.doclet.DocletEnvironment;
 import jdk.javadoc.doclet.Reporter;
 import jdk.javadoc.doclet.Taglet;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.hamcrest.io.FileMatchers;
 import org.junit.jupiter.api.Test;
 import org.oddjob.OurDirs;
 import org.oddjob.arooa.beandocs.element.BeanDocElement;
+import org.oddjob.arooa.beandocs.element.LinkElement;
 import org.oddjob.arooa.beandocs.element.StandardElement;
+import org.oddjob.doc.html.HtmlContext;
 import org.oddjob.doc.html.HtmlVisitor;
+import org.oddjob.doc.loader.IncludeLoader;
 import org.oddjob.doc.taglet.UnknownInlineLoaderProvider;
-import org.oddjob.doc.util.InlineTagHelper;
+import org.oddjob.doc.util.LoaderProvider;
 
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 import java.util.spi.ToolProvider;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -38,7 +37,7 @@ class TypeProcessorTest {
 
     static CaptureConsumer.Type beanDocConsumer;
 
-    static InlineTagHelper inlineTagHelper;
+    static LoaderProvider loaderProvider;
 
     @Test
     void testSingleClass() {
@@ -50,7 +49,7 @@ class TypeProcessorTest {
 
         beanDocConsumer = new CaptureConsumer.Type();
 
-        inlineTagHelper = new OurHelper();
+        loaderProvider = new OurLoaderProvider();
 
         ToolProvider toolProvider = ToolProvider.findFirst("javadoc")
                 .orElseThrow(() -> new IllegalArgumentException("No JavaDco"));
@@ -58,43 +57,47 @@ class TypeProcessorTest {
                 "-doclet", TestDoclet.class.getName(),
                 srcPath.toString(), srcPath2.toString());
 
-        assertThat(HtmlVisitor.visitAll(beanDocConsumer.description().getFirstSentence()),
+        assertThat(result, Matchers.is(0));
+
+        HtmlContext context = new OurHtmlContext();
+
+        assertThat(HtmlVisitor.visitAll(beanDocConsumer.description().getFirstSentence(), context),
                 is("First sentence in block tag."));
 
-        assertThat(HtmlVisitor.visitAll(beanDocConsumer.description().getBody()),
+        assertThat(HtmlVisitor.visitAll(beanDocConsumer.description().getBody(), context),
                 is(
                 "First sentence in block tag. Some more stuff in the block tag. LINK: ThingWithSomeDoc.\n" +
                         " ** WORKED **. <p>And some html</p>."));
 
         CaptureConsumer exampleConsumer = beanDocConsumer.getExample(0);
-        assertThat(HtmlVisitor.visitAll(exampleConsumer.getFirstSentence()),
+        assertThat(HtmlVisitor.visitAll(exampleConsumer.getFirstSentence(), context),
                 is("This is an example."));
-        assertThat(HtmlVisitor.visitAll(exampleConsumer.getBody()),
+        assertThat(HtmlVisitor.visitAll(exampleConsumer.getBody(), context),
                 is("This is an example.\n\n Which can go over several lines.\n\n ** WORKED **"));
         assertThat(exampleConsumer.isClosed(), is(true));
 
         CaptureConsumer somePropConsumer = beanDocConsumer.getProperty("someProp");
 
-        assertThat(HtmlVisitor.visitAll(somePropConsumer.getFirstSentence()),
+        assertThat(HtmlVisitor.visitAll(somePropConsumer.getFirstSentence(), context),
                 is("Some property"));
-        assertThat(HtmlVisitor.visitAll(somePropConsumer.getBody()),
+        assertThat(HtmlVisitor.visitAll(somePropConsumer.getBody(), context),
                 is("Some property"));
         assertThat(somePropConsumer.isClosed(), is(true));
 
         CaptureConsumer.Property anotherPropConsumer = beanDocConsumer.getProperty("anotherProp");
 
-        assertThat(HtmlVisitor.visitAll(anotherPropConsumer.getFirstSentence()),
+        assertThat(HtmlVisitor.visitAll(anotherPropConsumer.getFirstSentence(), context),
                 is("Another property"));
-        assertThat(HtmlVisitor.visitAll(anotherPropConsumer.getBody()),
+        assertThat(HtmlVisitor.visitAll(anotherPropConsumer.getBody(), context),
                 is("Another property"));
         assertThat(anotherPropConsumer.getRequired(), is("Yes"));
         assertThat(anotherPropConsumer.isClosed(), is(true));
 
         CaptureConsumer.Property superPropConsumer = beanDocConsumer.getProperty("superProp");
 
-        assertThat(HtmlVisitor.visitAll(superPropConsumer.getFirstSentence()),
+        assertThat(HtmlVisitor.visitAll(superPropConsumer.getFirstSentence(), context),
                 is("Property in super class."));
-        assertThat(HtmlVisitor.visitAll(superPropConsumer.getBody()),
+        assertThat(HtmlVisitor.visitAll(superPropConsumer.getBody(), context),
                 is("Property in super class."));
         assertThat(superPropConsumer.getRequired(), nullValue());
         assertThat(superPropConsumer.isClosed(), is(true));
@@ -125,9 +128,7 @@ class TypeProcessorTest {
         @Override
         public boolean run(DocletEnvironment environment) {
 
-            InlineHelperProvider inlineHelperProvider = typeElement -> inlineTagHelper;
-
-            Processor test = new Processor(environment, inlineHelperProvider, reporter);
+            Processor test = new Processor(environment, loaderProvider, reporter);
 
             TypeElement element = (TypeElement) new ArrayList<>(environment.getSpecifiedElements()).get(0);
 
@@ -137,26 +138,25 @@ class TypeProcessorTest {
         }
     }
 
-    static class OurHelper implements InlineTagHelper {
-
+    static class OurHtmlContext implements HtmlContext {
         @Override
-        public String processLink(LinkTree linkTag, Element element) {
-            return "LINK: " + linkTag.getReference().getSignature();
+        public String hyperlinkFor(LinkElement linkElement) {
+            return "LINK: " + linkElement.getSignature();
         }
+    }
+
+    static class OurLoaderProvider implements LoaderProvider {
 
         @Override
-        public BeanDocElement processUnknownInline(UnknownInlineTagTree unknownTag, Element element) {
-            if (unknownTag.getTagName().equals("our.inline")) {
-                return StandardElement.of("** WORKED **");
-            }
-            else {
-                throw new IllegalStateException("Unexpected: " + unknownTag);
-            }
-        }
+        public Optional<IncludeLoader> loaderFor(String name) {
+            MatcherAssert.assertThat(name, is("our.inline"));
 
-        @Override
-        public BeanDocElement processLiteral(LiteralTree literalTree, Element element) {
-            throw new IllegalStateException("Unexpected!");
+            return Optional.of(new IncludeLoader() {
+                @Override
+                public BeanDocElement load(String path) {
+                    return StandardElement.of("** WORKED **");
+                }
+            });
         }
     }
 
@@ -194,9 +194,8 @@ class TypeProcessorTest {
 
         DocTrees docTrees = mock(DocTrees.class);
 
-        inlineTagHelper = new ReferenceInlineTagHelper(docTrees,
-                new UnknownInlineLoaderProvider(getClass().getClassLoader()),
-                null, null, null);
+        loaderProvider = new UnknownInlineLoaderProvider(
+                getClass().getClassLoader());
 
         ToolProvider toolProvider = ToolProvider.findFirst("javadoc")
                 .orElseThrow(() -> new IllegalArgumentException("No JavaDco"));
@@ -204,7 +203,9 @@ class TypeProcessorTest {
                 "-doclet", TestDoclet.class.getName(),
                 srcPath.toString());
 
-        String html = HtmlVisitor.visitAll(beanDocConsumer.description().getBody());
+        HtmlContext htmlContext = mock(HtmlContext.class);
+
+        String html = HtmlVisitor.visitAll(beanDocConsumer.description().getBody(), htmlContext);
 
         assertThat(html, containsString("stuff colour=\"green\""));
     }
@@ -222,9 +223,8 @@ class TypeProcessorTest {
 
         DocTrees docTrees = mock(DocTrees.class);
 
-        inlineTagHelper = new ReferenceInlineTagHelper(docTrees,
-                new UnknownInlineLoaderProvider(getClass().getClassLoader()),
-                null, null, null);
+        loaderProvider = new UnknownInlineLoaderProvider(
+                getClass().getClassLoader());
 
         ToolProvider toolProvider = ToolProvider.findFirst("javadoc")
                 .orElseThrow(() -> new IllegalArgumentException("No JavaDco"));
@@ -232,8 +232,10 @@ class TypeProcessorTest {
                 "-doclet", TestDoclet.class.getName(),
                 srcPath.toString());
 
-        String html = HtmlVisitor.visitAll(beanDocConsumer.description().getBody());
+        HtmlContext htmlContext = mock(HtmlContext.class);
 
-        assertThat(html, containsString("Some <pre>java.lang.String</pre>s and also x &#62; y."));
+        String html = HtmlVisitor.visitAll(beanDocConsumer.description().getBody(), htmlContext);
+
+        assertThat(html, containsString("Some <code>java.lang.String</code>s and also x &#62; y."));
     }
 }

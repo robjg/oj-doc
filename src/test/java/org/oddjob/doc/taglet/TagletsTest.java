@@ -5,10 +5,17 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 import org.oddjob.OurDirs;
+import org.oddjob.arooa.convert.convertlets.FileConvertlets;
+import org.oddjob.arooa.standard.StandardArooaSession;
+import org.oddjob.io.FilesType;
+import org.oddjob.maven.jobs.ResolveJob;
+import org.oddjob.maven.types.Dependency;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
@@ -126,6 +133,59 @@ public class TagletsTest {
                 "-tag", "author",
                 "-tag", "version",
                 "-tag", "since",
+                "-d", dest.toString(),
+                "org.oddjob");
+
+        logger.info("Javadoc completed with status " + result);
+
+        assertThat(result, is(0));
+
+        assertThat(Files.exists(index), is(true));
+        assertThat(Files.exists(oddjob), is(true));
+    }
+
+    @Test
+    public void tagletsAsUsedInAntFile() throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {
+
+        Path dest = OurDirs.workPathDir(TagletsTest.class, "tagletsAsUsedInAntFile");
+
+        Path index = dest.resolve("index.html");
+        Path oddjob = dest.resolve("org/oddjob/Oddjob.html");
+
+        Path oddjobSrc = OurDirs.relativePath("../oddjob/src/main/java");
+
+        assertThat(Files.exists(oddjobSrc), is(true));
+
+        Dependency dependency = new Dependency();
+        dependency.setCoords("uk.co.rgordon:arooa:1.7.0-SNAPSHOT");
+
+        ResolveJob resolveJob = new ResolveJob();
+        resolveJob.setArooaSession(new StandardArooaSession());
+        resolveJob.setDependencies(dependency);
+        resolveJob.run();
+
+        FilesType filesType = new FilesType();
+        filesType.setList(0, resolveJob.getResolvedFilesArray());
+        filesType.setList(1, new File[] {
+                new File("target/classes") } );
+        filesType.setList(2, new File[] {
+                OurDirs.relativePath("../oddjob/target/test-classes").toFile() } );
+
+        String tagletPath = FileConvertlets.filesToPath(filesType.toFiles());
+
+        String descriptionTaglet = DescriptionTaglet.class.getName();
+        String exampleTaglet = ExampleTaglet.class.getName();
+
+        ToolProvider toolProvider = ToolProvider.findFirst("javadoc")
+                .orElseThrow(() -> new IllegalArgumentException("No JavaDoc"));
+        int result = toolProvider.run(System.out, System.err,
+         "-Xdoclint:none",
+                "-sourcepath", oddjobSrc.toString(),
+                "-tagletpath", tagletPath,
+                "-tag", "oddjob.property:fm:Reference Property:",
+                "-taglet", descriptionTaglet,
+                "-tag", "oddjob.required:mf:Required:",
+                "-taglet", exampleTaglet,
                 "-d", dest.toString(),
                 "org.oddjob");
 

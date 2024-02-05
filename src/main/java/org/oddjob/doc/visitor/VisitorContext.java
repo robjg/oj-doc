@@ -1,9 +1,9 @@
 package org.oddjob.doc.visitor;
 
-import com.sun.source.doctree.LinkTree;
-import com.sun.source.doctree.LiteralTree;
-import com.sun.source.doctree.UnknownInlineTagTree;
-import org.oddjob.arooa.beandocs.element.BeanDocElement;
+import com.sun.source.util.DocTrees;
+import org.oddjob.doc.util.LoaderProvider;
+
+import javax.lang.model.element.Element;
 
 /**
  * Used for visiting Doc Tree Nodes.
@@ -20,9 +20,9 @@ public interface VisitorContext {
 
     void fail(String msg, Exception e);
 
-    String processLink(LinkTree linkTag);
+    LoaderProvider getLoaderProvider();
 
-    BeanDocElement processUnknownInline(UnknownInlineTagTree unknownTag);
+    Element getElement();
 
-    BeanDocElement processLiteral(LiteralTree literalTree);
+    DocTrees getDocTrees();
 }

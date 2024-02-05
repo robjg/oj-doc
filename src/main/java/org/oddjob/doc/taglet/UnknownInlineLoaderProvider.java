@@ -1,5 +1,6 @@
 package org.oddjob.doc.taglet;
 
+import com.sun.source.doctree.UnknownInlineTagTree;
 import org.oddjob.doc.doclet.CustomTagNames;
 import org.oddjob.doc.loader.IncludeLoader;
 import org.oddjob.doc.loader.PlainTextLoader;
@@ -11,8 +12,8 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Provides Unkown Inline {@link IncludeLoader} for the Reference Doclet and Block Taglets for
- * the Standard Javadoc Taglet.
+ * Provides Unknown Inline {@link IncludeLoader} for the Reference Doclet and Block Taglets for
+ * the Standard Javadoc Taglet. Used to process {@link UnknownInlineTagTree} nodes.
  */
 public class UnknownInlineLoaderProvider implements LoaderProvider {
 

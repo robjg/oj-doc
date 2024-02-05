@@ -24,8 +24,6 @@ abstract public class AbstractLoader implements IncludeLoader {
 
         FilterFactory filterFactory = new FilterFactory(fileName);
 
-        String resourcePath = filterFactory.getResourcePath();
-
         try (InputStream inputStream = loader.provideStream(filterFactory.getResourcePath())) {
 
             return filterFactory.getTextLoader().load(inputStream);
@@ -70,7 +68,7 @@ abstract public class AbstractLoader implements IncludeLoader {
             InputStream input = classLoader.getResourceAsStream(resource);
 
             if (input == null) {
-                throw new IOException("No Resource Found: path");
+                throw new IOException("No Resource Found: '" + resource + "', classloader=" + classLoader);
             }
 
             logger.info("Reading resource {}", resource);

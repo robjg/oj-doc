@@ -1,10 +1,13 @@
 package org.oddjob.doc.visitor;
 
 import com.sun.source.doctree.*;
-import org.oddjob.arooa.beandocs.element.BeanDocElement;
-import org.oddjob.arooa.beandocs.element.StandardElement;
+import org.oddjob.arooa.beandocs.element.*;
+import org.oddjob.doc.util.DocUtil;
+import org.oddjob.doc.util.ElementDissected;
 
+import javax.lang.model.element.Element;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -15,7 +18,7 @@ public class BlockVisitor implements DocTreeVisitor<Void, VisitorContext> {
     private final Consumer<? super BeanDocElement> beanDocConsumer;
 
     private BlockVisitor(Consumer<? super BeanDocElement> beanDocConsumer) {
-        this.beanDocConsumer = beanDocConsumer;
+        this.beanDocConsumer = Objects.requireNonNull(beanDocConsumer);
     }
 
     public static void visitAll(List<? extends DocTree> tags,
@@ -94,13 +97,45 @@ public class BlockVisitor implements DocTreeVisitor<Void, VisitorContext> {
 
     @Override
     public Void visitLink(LinkTree node, VisitorContext visitorContext) {
-        beanDocConsumer.accept(StandardElement.of(visitorContext.processLink(node)));
+
+        LinkElement linkElement = new LinkElement();
+
+        ReferenceTree rtree = node.getReference();
+
+        linkElement.setSignature(rtree.getSignature());
+        linkElement.setLabel(DocUtil.toString(node.getLabel()));
+
+        Element refElement = DocUtil.getReferenceElement(
+                visitorContext.getDocTrees(), visitorContext.getElement(), rtree);
+
+        // A null element will be one that can't be resolved.
+        if (refElement != null) {
+            ElementDissected dissected = ElementDissected.from(refElement, visitorContext::fail);
+
+            linkElement.setQualifiedType(dissected.getQualifiedType());
+            linkElement.setPropertyName(dissected.getPropertyName());
+        }
+
+        beanDocConsumer.accept(linkElement);
+
         return null;
     }
 
     @Override
-    public Void visitLiteral(LiteralTree node, VisitorContext visitorContext) {
-        beanDocConsumer.accept(visitorContext.processLiteral(node));
+    public Void visitLiteral(LiteralTree literalTree, VisitorContext visitorContext) {
+        BeanDocElement docElement;
+        String text = literalTree.getBody().toString();
+        switch (literalTree.getKind()) {
+            case CODE:
+                docElement = CodeElement.of(text);
+                break;
+            case LITERAL:
+                docElement = LiteralElement.of(text);
+                break;
+            default:
+                docElement =  StandardElement.of("[Unsupported Literal Kind " + literalTree.getKind() + "]: " + text);
+        }
+        beanDocConsumer.accept(docElement);
         return null;
     }
 
@@ -177,8 +212,12 @@ public class BlockVisitor implements DocTreeVisitor<Void, VisitorContext> {
     }
 
     @Override
-    public Void visitUnknownInlineTag(UnknownInlineTagTree node, VisitorContext visitorContext) {
-        beanDocConsumer.accept(visitorContext.processUnknownInline(node));
+    public Void visitUnknownInlineTag(UnknownInlineTagTree unknownTag, VisitorContext visitorContext) {
+        BeanDocElement docElement =  visitorContext.getLoaderProvider()
+                .loaderFor(unknownTag.getTagName())
+                .map(loader -> loader.load(DocUtil.unknownTagContent(unknownTag)))
+                .orElseGet(() -> StandardElement.of(unknownTag.toString()));
+        beanDocConsumer.accept(docElement);
         return null;
     }
 

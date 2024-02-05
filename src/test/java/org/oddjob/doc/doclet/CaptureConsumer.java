@@ -17,6 +17,10 @@ public class CaptureConsumer implements BeanDocConsumer {
 
     private boolean closed;
 
+    public static Type forType() {
+        return new Type();
+    }
+
     public List<BeanDocElement> getFirstSentence() {
         return firstSentence;
     }

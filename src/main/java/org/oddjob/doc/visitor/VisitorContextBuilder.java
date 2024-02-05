@@ -1,11 +1,8 @@
 package org.oddjob.doc.visitor;
 
-import com.sun.source.doctree.LinkTree;
-import com.sun.source.doctree.LiteralTree;
-import com.sun.source.doctree.UnknownInlineTagTree;
+import com.sun.source.util.DocTrees;
 import jdk.javadoc.doclet.Reporter;
-import org.oddjob.arooa.beandocs.element.BeanDocElement;
-import org.oddjob.doc.util.InlineTagHelper;
+import org.oddjob.doc.util.LoaderProvider;
 
 import javax.lang.model.element.Element;
 import javax.tools.Diagnostic;
@@ -15,23 +12,30 @@ import javax.tools.Diagnostic;
  */
 public class VisitorContextBuilder {
 
-    public static VisitorContext create(InlineTagHelper inlineTagHelper,
+    public static VisitorContext create(DocTrees docTrees,
+                                        LoaderProvider loaderProvider,
                                         Reporter reporter,
                                         Element element) {
 
-        return new Impl(inlineTagHelper, reporter, element);
+        return new Impl(docTrees, loaderProvider, reporter, element);
     }
 
     private static class Impl implements VisitorContext {
 
-        private final InlineTagHelper inlineTagHelper;
+        private final DocTrees docTrees;
+
+        private final LoaderProvider loaderProvider;
 
         private final Reporter reporter;
 
         private final Element element;
 
-        private Impl(InlineTagHelper inlineTagHelper, Reporter reporter, Element element) {
-            this.inlineTagHelper = inlineTagHelper;
+        private Impl(DocTrees docTrees,
+                     LoaderProvider loaderProvider,
+                     Reporter reporter,
+                     Element element) {
+            this.docTrees = docTrees;
+            this.loaderProvider = loaderProvider;
             this.reporter = reporter;
             this.element = element;
         }
@@ -59,20 +63,19 @@ public class VisitorContextBuilder {
         }
 
         @Override
-        public String processLink(LinkTree linkTag) {
-            return inlineTagHelper.processLink(linkTag, element);
+        public LoaderProvider getLoaderProvider() {
+            return loaderProvider;
         }
 
         @Override
-        public BeanDocElement processUnknownInline(UnknownInlineTagTree unknownTag) {
-            return inlineTagHelper.processUnknownInline(unknownTag, element);
+        public Element getElement() {
+            return element;
         }
 
         @Override
-        public BeanDocElement processLiteral(LiteralTree literalTree) {
-            return inlineTagHelper.processLiteral(literalTree, element);
+        public DocTrees getDocTrees() {
+            return docTrees;
         }
+
     }
-
-
 }

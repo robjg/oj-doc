@@ -16,6 +16,7 @@ import org.oddjob.arooa.deploy.ClassPathDescriptorFactory;
 import org.oddjob.arooa.deploy.LinkedDescriptor;
 import org.oddjob.arooa.standard.BaseArooaDescriptor;
 import org.oddjob.arooa.standard.StandardArooaSession;
+import org.oddjob.arooa.utils.ClassUtils;
 import org.oddjob.doc.taglet.UnknownInlineLoaderProvider;
 import org.oddjob.doc.util.LoaderProvider;
 
@@ -45,6 +46,16 @@ public class ReferenceDoclet implements Doclet {
 
     private Reporter reporter;
 
+    static ClassLoader classLoaderFor(String classPath) throws MalformedURLException {
+
+        File[] files = new FileConvertlets().pathToFiles(classPath);
+        URL[] urls = new URL[files.length];
+        for (int i = 0; i < files.length; ++i) {
+            urls[i] = files[i].toURI().toURL();
+        }
+        return new URLClassLoader(urls);
+    }
+
     class Main {
 
         private final JobsAndTypes jats;
@@ -67,12 +78,7 @@ public class ReferenceDoclet implements Doclet {
                 docsFactory = new SessionArooaDocFactory(
                         new StandardArooaSession(descriptor));
             } else {
-                File[] files = new FileConvertlets().pathToFiles(classPath);
-                URL[] urls = new URL[files.length];
-                for (int i = 0; i < files.length; ++i) {
-                    urls[i] = files[i].toURI().toURL();
-                }
-                URLClassLoader classLoader = new URLClassLoader(urls);
+                ClassLoader classLoader = classLoaderFor(classPath);
 
                 factory.setExcludeParent(true);
 
@@ -106,17 +112,12 @@ public class ReferenceDoclet implements Doclet {
             return jats;
         }
 
-        boolean process(DocletEnvironment docEnv, String destination, String title) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        boolean process(DocletEnvironment docEnv, String destination, String title, ClassLoader resourceLoader)
+                throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
 
-            ClassLoader classLoader = Objects.requireNonNullElseGet(
-                    Thread.currentThread().getContextClassLoader(),
-                    () -> getClass().getClassLoader());
-
-            LoaderProvider loaderProvider = new UnknownInlineLoaderProvider(classLoader);
+            LoaderProvider loaderProvider = new UnknownInlineLoaderProvider(resourceLoader);
 
             InlineHelperProvider inlineHelperProvider = new ReferenceHelperProvider(
-                    docEnv.getDocTrees(),
-                    loaderProvider,
                     fqn -> {
                         BeanDoc beanDoc = jats.docFor(fqn);
                         if (beanDoc == null) {
@@ -128,7 +129,7 @@ public class ReferenceDoclet implements Doclet {
                     pathToRefRoot -> pathToRefRoot + "/../api"
             );
 
-            Processor processor = new Processor(docEnv, inlineHelperProvider, reporter);
+            Processor processor = new Processor(docEnv, loaderProvider, reporter);
 
             final Archiver archiver = new Archiver(jats, processor, reporter);
 
@@ -152,9 +153,12 @@ public class ReferenceDoclet implements Doclet {
                 }
             }
 
+            reporter.print(Diagnostic.Kind.NOTE, "Writing Manual with Archive=" + archiver);
+
             ManualWriter w = new ManualWriter(
                     Objects.requireNonNull(destination, "No destination"),
-                    title);
+                    title,
+                    inlineHelperProvider);
             w.createManual(archiver);
 
             return result;
@@ -189,7 +193,7 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public String getDescription() {
-                        return "The destination directory";
+                        return "The Destination Directory";
                     }
 
                     @Override
@@ -221,7 +225,7 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public String getDescription() {
-                        return "arooa-descriptor-path";
+                        return "Arooa Descriptor Path";
                     }
 
                     @Override
@@ -253,7 +257,7 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public String getDescription() {
-                        return "arooa-descriptor-resource";
+                        return "Arooa Descriptor Resource";
                     }
 
                     @Override
@@ -317,7 +321,7 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public String getDescription() {
-                        return "DocConsumer";
+                        return "Loader Path";
                     }
 
                     @Override
@@ -327,17 +331,17 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public List<String> getNames() {
-                        return List.of("-doc-consumer-class");
+                        return List.of("-loaderpath");
                     }
 
                     @Override
                     public String getParameters() {
-                        return "String";
+                        return "Path";
                     }
 
                     @Override
                     public boolean process(String option, List<String> arguments) {
-                        options.docConsumerClass = arguments.get(0);
+                        options.loaderPath = arguments.get(0);
                         return true;
                     }
                 }
@@ -354,26 +358,40 @@ public class ReferenceDoclet implements Doclet {
 
         reporter.print(Diagnostic.Kind.NOTE, "Starting ReferenceDoclet.");
 
-        ClassLoader loader = ReferenceDoclet.class.getClassLoader();
+        String loaderPath = options.getLoaderPath();
 
-        System.out.println("ClassLoader stack:");
-        for (ClassLoader next = loader; next != null; next = next.getParent()) {
-            System.out.println("  " + next);
-        }
-
+        boolean result;
 
         try {
+            ClassLoader resourceClassLoader;
+
+            if (loaderPath == null) {
+                resourceClassLoader = getClass().getClassLoader();
+            }
+            else {
+                resourceClassLoader = classLoaderFor(loaderPath);
+            }
+
+            reporter.print(Diagnostic.Kind.NOTE,
+                    ClassUtils.classLoaderAndContextLoaderStack(getClass()));
+            reporter.print(Diagnostic.Kind.NOTE,
+                    ClassUtils.classLoaderStack(resourceClassLoader, "Resource Loader Class Loader"));
+
             Main md = new Main(
                     options.getDescriptorPath(), options.getResource());
 
-            return md.process(environment, options.getDestination(),
-                    options.getTitle());
+            result = md.process(environment, options.getDestination(),
+                    options.getTitle(), resourceClassLoader);
 
         } catch (ClassNotFoundException | InvocationTargetException | InstantiationException | NoSuchMethodException |
                  IllegalAccessException | MalformedURLException e) {
             reporter.print(Diagnostic.Kind.ERROR, e.getMessage());
-            return false;
+            result = false;
         }
+
+        reporter.print(Diagnostic.Kind.NOTE, "Completed Reference Doclet, result=" + result);
+
+        return result;
     }
 
     private static class Options {
@@ -386,9 +404,7 @@ public class ReferenceDoclet implements Doclet {
 
         private String title;
 
-        private String docConsumerClass;
-
-        private String loaderFactoryClass;
+        private String loaderPath;
 
         public String getDestination() {
             return destination;
@@ -406,12 +422,9 @@ public class ReferenceDoclet implements Doclet {
             return resource;
         }
 
-        public String getDocConsumerClass() {
-            return docConsumerClass;
+        public String getLoaderPath() {
+            return loaderPath;
         }
 
-        public String getLoaderFactoryClass() {
-            return loaderFactoryClass;
-        }
     }
 }

@@ -10,7 +10,7 @@ import jdk.javadoc.doclet.Reporter;
 import org.oddjob.arooa.utils.EtcUtils;
 import org.oddjob.doc.beandoc.TypeConsumers;
 import org.oddjob.doc.util.DocUtil;
-import org.oddjob.doc.util.InlineTagHelper;
+import org.oddjob.doc.util.LoaderProvider;
 import org.oddjob.doc.visitor.PropertyVisitor;
 import org.oddjob.doc.visitor.TypeVisitor;
 import org.oddjob.doc.visitor.VisitorContext;
@@ -35,7 +35,7 @@ public class Processor implements ElementProcessor{
 
 	private final DocletEnvironment docEnv ;
 
-	private final InlineHelperProvider linkProcessorProvider;
+	private final LoaderProvider loaderProvider;
 
 	private final Reporter reporter;
 
@@ -43,15 +43,15 @@ public class Processor implements ElementProcessor{
 	 * Create a processor.
 	 *  
 	 * @param docEnv The utility class for access comments.
-	 * @param linkProcessorProvider Helper for inline tags.
+	 * @param loaderProvider Helper for inline include tags.
 	 * @param reporter The javadoc Reporter.
 	 */
 	public Processor(DocletEnvironment docEnv,
-					 InlineHelperProvider linkProcessorProvider,
+					 LoaderProvider loaderProvider,
 					 Reporter reporter) {
 
 		this.docEnv = docEnv;
-		this.linkProcessorProvider = linkProcessorProvider;
+		this.loaderProvider = loaderProvider;
 		this.reporter = reporter;
 	}
 
@@ -72,10 +72,8 @@ public class Processor implements ElementProcessor{
 			return;
 		}
 
-		InlineTagHelper inlineTagHelper = linkProcessorProvider.forElement(element);
-
 		VisitorContext visitorContext = VisitorContextBuilder.create(
-				inlineTagHelper, reporter, element);
+				docTrees, loaderProvider, reporter, element);
 
 		TypeVisitor.with(docTrees, visitorContext)
 				.visit(docCommentTree, typeConsumers);
@@ -85,12 +83,20 @@ public class Processor implements ElementProcessor{
 
 		for (Element enclosedElement : enclosed) {
 
-			processFieldOrMethod(enclosedElement, typeConsumers, inlineTagHelper);
+			processFieldOrMethod(enclosedElement, typeConsumers);
 		}
 
 		typeConsumers.close();
 	}
 
+	/**
+	 * Find all the members and methods including those for super classes.
+	 *
+	 * @param element The Type Element.
+	 * @param accumulator Capture all elements.
+	 *
+	 * @return List of all enclosed elements.
+	 */
 	List<Element> enclosedElements(TypeElement element, List<Element> accumulator) {
 
 		if (Object.class.getName().equals(DocUtil.fqcnFor(element))) {
@@ -110,10 +116,8 @@ public class Processor implements ElementProcessor{
 	 *
 	 * @param element The field or method or other element.
 	 * @param beanDocConsumer The thing that provides the consumer for property doc.
-	 * @param inlineTagHelper Use to create the new context.
 	 */
-	void processFieldOrMethod(Element element, TypeConsumers beanDocConsumer,
-							  InlineTagHelper inlineTagHelper) {
+	void processFieldOrMethod(Element element, TypeConsumers beanDocConsumer) {
 
 		DocTrees docTrees = docEnv.getDocTrees();
 
@@ -131,8 +135,8 @@ public class Processor implements ElementProcessor{
 
 		String propertyName = optionalPropertyName.get();
 
-		VisitorContext visitorContext = VisitorContextBuilder.create(
-				inlineTagHelper, reporter, element);
+		VisitorContext visitorContext = VisitorContextBuilder.create(docTrees,
+				loaderProvider, reporter, element);
 
 		PropertyVisitor.with(docTrees, visitorContext)
 				.visit(docCommentTree, beanDocConsumer, propertyName);

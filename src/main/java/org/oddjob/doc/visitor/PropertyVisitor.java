@@ -72,13 +72,13 @@ public class PropertyVisitor extends NoopVisitor {
                     }
                     this.propertyName = tagContent;
                 }
-                if (!ensurePropertyConsumer()) {
+                if (getConsumerButNone()) {
                     return null;
                 }
             }
             else if (CustomTagNames.DESCRIPTION_TAG_NAME.equals(tagName)) {
 
-                if (!ensurePropertyConsumer()) {
+                if (getConsumerButNone()) {
                     return null;
                 }
 
@@ -95,7 +95,7 @@ public class PropertyVisitor extends NoopVisitor {
 
             } else if (CustomTagNames.REQUIRED_TAG_NAME.equals(tagName)) {
 
-                if (!ensurePropertyConsumer()) {
+                if (getConsumerButNone()) {
                     return null;
                 }
 
@@ -109,12 +109,15 @@ public class PropertyVisitor extends NoopVisitor {
             return null;
         }
 
-        boolean ensurePropertyConsumer() {
+        boolean getConsumerButNone() {
             if (propertyConsumer == null) {
                 propertyConsumer = typeConsumers.property(propertyName);
             }
 
-            return propertyConsumer != null;
+            // This will be null if the property is not public. The property tag might be on a
+            // protected member of a base class that is exposed in some subclasses but not all
+            // The stop property is one such example.
+            return propertyConsumer == null;
         }
 
         @Override

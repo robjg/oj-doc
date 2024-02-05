@@ -37,7 +37,7 @@ public class HtmlUtil {
      * @return HTML.
      */
     public static String toHtml(CodeElement code) {
-        return "<pre>" + escapeHtml(code.getText()) + "</pre>";
+        return "<code>" + escapeHtml(code.getText()) + "</code>";
     }
 
 

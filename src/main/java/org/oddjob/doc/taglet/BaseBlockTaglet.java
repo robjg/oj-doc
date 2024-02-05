@@ -7,15 +7,17 @@ import jdk.javadoc.doclet.Doclet;
 import jdk.javadoc.doclet.DocletEnvironment;
 import jdk.javadoc.doclet.Reporter;
 import jdk.javadoc.doclet.Taglet;
+import org.oddjob.arooa.beandocs.element.BeanDocElement;
+import org.oddjob.doc.html.HtmlVisitor;
 import org.oddjob.doc.util.DocTreesReporter;
-import org.oddjob.doc.util.InlineTagHelper;
+import org.oddjob.doc.util.LoaderProvider;
 import org.oddjob.doc.visitor.BlockVisitor;
 import org.oddjob.doc.visitor.VisitorContext;
 import org.oddjob.doc.visitor.VisitorContextBuilder;
 
 import javax.lang.model.element.Element;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Base class for Taglet functionality for an Oddjob block tag.
@@ -26,7 +28,7 @@ abstract public class BaseBlockTaglet implements Taglet {
 
     private DocletEnvironment env;
 
-    private InlineTagHelper inlineTagHelper;
+    private LoaderProvider loaderProvider;
 
     private Reporter reporter;
 
@@ -41,12 +43,7 @@ abstract public class BaseBlockTaglet implements Taglet {
 
         this.env = env;
 
-        ClassLoader classLoader = Objects.requireNonNullElseGet(
-                Thread.currentThread().getContextClassLoader(),
-                () -> getClass().getClassLoader());
-
-        inlineTagHelper = new TagletInlineTagHelper(
-                env.getDocTrees(), new UnknownInlineLoaderProvider(classLoader));
+        loaderProvider = new UnknownInlineLoaderProvider(getClass().getClassLoader());
     }
 
     @Override
@@ -57,10 +54,9 @@ abstract public class BaseBlockTaglet implements Taglet {
         Reporter reporter = DocTreesReporter.with(docTrees);
 
         VisitorContext visitorContext = VisitorContextBuilder
-                .create(inlineTagHelper, reporter, element);
+                .create(docTrees, loaderProvider, reporter, element);
 
-        StringBuilder stringBuilder = new StringBuilder();
-
+        List<BeanDocElement> docElements = new ArrayList<>();
         for (DocTree docTree: tags) {
 
             if (!(docTree instanceof UnknownBlockTagTree)) {
@@ -71,15 +67,14 @@ abstract public class BaseBlockTaglet implements Taglet {
 
             List<? extends DocTree> content = unknownBlockTagTree.getContent();
 
-            stringBuilder.append("<p><b>")
-                    .append(getTitle())
-                    .append("</b></p>");
-
-            BlockVisitor.visitAll(content, stringBuilder::append, visitorContext);
+            BlockVisitor.visitAll(content, docElements::add, visitorContext);
 
         }
 
-        return stringBuilder.toString();
+        return "<p><b>" +
+                getTitle() +
+                "</b></p>" +
+                HtmlVisitor.visitAll(docElements, new TagletInlineTagHelper(element));
     }
 
     /**
