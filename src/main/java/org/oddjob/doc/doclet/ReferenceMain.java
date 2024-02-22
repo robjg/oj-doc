@@ -31,6 +31,8 @@ public class ReferenceMain implements Callable<Integer> {
 
     private String loaderPath;
 
+    private String writerFactory;
+
     private boolean verbose;
 
     public static void main(String... args) {
@@ -101,7 +103,11 @@ public class ReferenceMain implements Callable<Integer> {
         }
         Optional.ofNullable(this.loaderPath).ifPresent(lp -> {
             args.add("-loaderpath");
-            args.add(loaderPath);
+            args.add(lp);
+        });
+        Optional.ofNullable(this.writerFactory).ifPresent(wf -> {
+            args.add("-writerfactory");
+            args.add(wf);
         });
 
         logger.info("Running javadoc with {}", args);
@@ -163,6 +169,22 @@ public class ReferenceMain implements Callable<Integer> {
 
     public void setLoaderPath(String loaderPath) {
         this.loaderPath = loaderPath;
+    }
+
+    public String getWriterFactory() {
+        return writerFactory;
+    }
+
+    public void setWriterFactory(String writerFactory) {
+        this.writerFactory = writerFactory;
+    }
+
+    public boolean isVerbose() {
+        return verbose;
+    }
+
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
     }
 
     @Override

@@ -1,15 +1,16 @@
 package org.oddjob.doc.doclet;
 
 import org.junit.Test;
+import org.oddjob.doc.html.HtmlPageWriter;
 
 import static org.junit.Assert.assertEquals;
 
-public class ReferenceHtmlPageWriterTest {
+public class HtmlPageWriterTest {
 
     @Test
     public void testIndexFileWithPackage() {
 
-        String result = ReferenceHtmlPageWriter.getIndexFile("com.foo.ba.HelloWorld");
+        String result = HtmlPageWriter.getIndexFile("com.foo.ba.HelloWorld");
 
         assertEquals("../../../index.html", result);
     }
@@ -17,7 +18,7 @@ public class ReferenceHtmlPageWriterTest {
     @Test
     public void testIndexFileWithSmallNames() {
 
-        String result = ReferenceHtmlPageWriter.getIndexFile("a.b.c.X");
+        String result = HtmlPageWriter.getIndexFile("a.b.c.X");
 
         assertEquals("../../../index.html", result);
     }
@@ -25,7 +26,7 @@ public class ReferenceHtmlPageWriterTest {
     @Test
     public void testIndexFileNoPackage() {
 
-        String result = ReferenceHtmlPageWriter.getIndexFile("HelloWorld");
+        String result = HtmlPageWriter.getIndexFile("HelloWorld");
 
         assertEquals("index.html", result);
     }
@@ -33,7 +34,7 @@ public class ReferenceHtmlPageWriterTest {
     @Test
     public void testIndexFileNoClass() {
 
-        String result = ReferenceHtmlPageWriter.getIndexFile("");
+        String result = HtmlPageWriter.getIndexFile("");
 
         assertEquals("index.html", result);
     }

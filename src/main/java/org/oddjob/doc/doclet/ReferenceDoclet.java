@@ -8,7 +8,6 @@ import jdk.javadoc.doclet.DocletEnvironment;
 import jdk.javadoc.doclet.Reporter;
 import org.oddjob.arooa.ArooaDescriptor;
 import org.oddjob.arooa.ArooaType;
-import org.oddjob.arooa.beandocs.BeanDoc;
 import org.oddjob.arooa.beandocs.SessionArooaDocFactory;
 import org.oddjob.arooa.beandocs.WriteableArooaDoc;
 import org.oddjob.arooa.convert.convertlets.FileConvertlets;
@@ -17,6 +16,7 @@ import org.oddjob.arooa.deploy.LinkedDescriptor;
 import org.oddjob.arooa.standard.BaseArooaDescriptor;
 import org.oddjob.arooa.standard.StandardArooaSession;
 import org.oddjob.arooa.utils.ClassUtils;
+import org.oddjob.doc.html.HtmlReferenceWriterFactory;
 import org.oddjob.doc.taglet.UnknownInlineLoaderProvider;
 import org.oddjob.doc.util.LoaderProvider;
 
@@ -32,7 +32,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -48,7 +47,7 @@ public class ReferenceDoclet implements Doclet {
 
     static ClassLoader classLoaderFor(String classPath) throws MalformedURLException {
 
-        File[] files = new FileConvertlets().pathToFiles(classPath);
+        File[] files = FileConvertlets.pathToFiles(classPath);
         URL[] urls = new URL[files.length];
         for (int i = 0; i < files.length; ++i) {
             urls[i] = files[i].toURI().toURL();
@@ -117,18 +116,6 @@ public class ReferenceDoclet implements Doclet {
 
             LoaderProvider loaderProvider = new UnknownInlineLoaderProvider(resourceLoader);
 
-            InlineHelperProvider inlineHelperProvider = new ReferenceHelperProvider(
-                    fqn -> {
-                        BeanDoc beanDoc = jats.docFor(fqn);
-                        if (beanDoc == null) {
-                            return null;
-                        } else {
-                            return beanDoc.getName();
-                        }
-                    },
-                    pathToRefRoot -> pathToRefRoot + "/../api"
-            );
-
             Processor processor = new Processor(docEnv, loaderProvider, reporter);
 
             final Archiver archiver = new Archiver(jats, processor, reporter);
@@ -155,11 +142,22 @@ public class ReferenceDoclet implements Doclet {
 
             reporter.print(Diagnostic.Kind.NOTE, "Writing Manual with Archive=" + archiver);
 
-            ManualWriter w = new ManualWriter(
-                    Objects.requireNonNull(destination, "No destination"),
-                    title,
-                    inlineHelperProvider);
-            w.createManual(archiver);
+            ReferenceWriterFactory writerFactory;
+            if (options.writerFactory == null) {
+                writerFactory = new HtmlReferenceWriterFactory();
+            }
+            else {
+                writerFactory = (ReferenceWriterFactory) Class.forName(options.writerFactory)
+                        .getConstructor().newInstance();
+            }
+
+            writerFactory.setArchive(archiver);
+            writerFactory.setDestination(destination);
+            writerFactory.setTitle(title);
+            writerFactory.setApiLink("../api");
+
+            ReferenceWriter referenceWriter = writerFactory.create();
+            referenceWriter.createManual(archiver);
 
             return result;
         }
@@ -344,7 +342,39 @@ public class ReferenceDoclet implements Doclet {
                         options.loaderPath = arguments.get(0);
                         return true;
                     }
+                },
+            new Option() {
+                @Override
+                public int getArgumentCount() {
+                    return 1;
                 }
+
+                @Override
+                public String getDescription() {
+                    return "Writer Factory";
+                }
+
+                @Override
+                public Kind getKind() {
+                    return Kind.STANDARD;
+                }
+
+                @Override
+                public List<String> getNames() {
+                    return List.of("-writerfactory");
+                }
+
+                @Override
+                public String getParameters() {
+                    return "Factory Class";
+                }
+
+                @Override
+                public boolean process(String option, List<String> arguments) {
+                    options.writerFactory = arguments.get(0);
+                    return true;
+                }
+            }
         );
     }
 
@@ -358,7 +388,7 @@ public class ReferenceDoclet implements Doclet {
 
         reporter.print(Diagnostic.Kind.NOTE, "Starting ReferenceDoclet.");
 
-        String loaderPath = options.getLoaderPath();
+        String loaderPath = options.loaderPath;
 
         boolean result;
 
@@ -378,10 +408,10 @@ public class ReferenceDoclet implements Doclet {
                     ClassUtils.classLoaderStack(resourceClassLoader, "Resource Loader Class Loader"));
 
             Main md = new Main(
-                    options.getDescriptorPath(), options.getResource());
+                    options.descriptorPath, options.resource);
 
-            result = md.process(environment, options.getDestination(),
-                    options.getTitle(), resourceClassLoader);
+            result = md.process(environment, options.destination,
+                    options.title, resourceClassLoader);
 
         } catch (ClassNotFoundException | InvocationTargetException | InstantiationException | NoSuchMethodException |
                  IllegalAccessException | MalformedURLException e) {
@@ -406,25 +436,6 @@ public class ReferenceDoclet implements Doclet {
 
         private String loaderPath;
 
-        public String getDestination() {
-            return destination;
-        }
-
-        public String getDescriptorPath() {
-            return descriptorPath;
-        }
-
-        public String getTitle() {
-            return title;
-        }
-
-        public String getResource() {
-            return resource;
-        }
-
-        public String getLoaderPath() {
-            return loaderPath;
-        }
-
+        private String writerFactory;
     }
 }

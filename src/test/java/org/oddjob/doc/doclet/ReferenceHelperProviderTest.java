@@ -2,6 +2,7 @@ package org.oddjob.doc.doclet;
 
 import org.junit.jupiter.api.Test;
 import org.oddjob.arooa.beandocs.element.LinkElement;
+import org.oddjob.doc.util.DocUtil;
 import org.oddjob.doc.util.InlineTagHelper;
 
 import java.util.function.Function;
@@ -24,7 +25,9 @@ class ReferenceHelperProviderTest {
                 pathToRefRoot -> pathToRefRoot + "/../api"
         );
 
-        InlineTagHelper tagHelper = inlineHelperProvider.forElement("org.bar.A");
+        String pathToRoot = DocUtil.pathToRoot("org.bar.A");
+
+        InlineTagHelper tagHelper = inlineHelperProvider.forElement(pathToRoot);
 
         LinkElement refElement = new LinkElement();
         refElement.setQualifiedType("org.foo.Job");

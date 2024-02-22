@@ -1,12 +1,13 @@
-package org.oddjob.doc.doclet;
+package org.oddjob.doc.html;
 
 import org.oddjob.arooa.ConfiguredHow;
 import org.oddjob.arooa.beandocs.BeanDoc;
 import org.oddjob.arooa.beandocs.ExampleDoc;
 import org.oddjob.arooa.beandocs.PropertyDoc;
 import org.oddjob.arooa.beandocs.element.BeanDocElement;
-import org.oddjob.doc.html.HtmlContext;
-import org.oddjob.doc.html.HtmlVisitor;
+import org.oddjob.doc.doclet.IndexLine;
+import org.oddjob.doc.doclet.InlineHelperProvider;
+import org.oddjob.doc.util.DocUtil;
 import org.oddjob.doc.util.InlineTagHelper;
 
 import java.io.FileOutputStream;
@@ -19,7 +20,7 @@ import java.util.List;
 /**
  * Writes a single HTML Reference Page.
  */
-public class ReferenceHtmlPageWriter {
+public class HtmlPageWriter {
 
     private final String title;
 
@@ -27,7 +28,7 @@ public class ReferenceHtmlPageWriter {
 
     private final InlineHelperProvider helperProvider;
 
-    public ReferenceHtmlPageWriter(String title, Path rootDirectory, InlineHelperProvider helperProvider) {
+    public HtmlPageWriter(String title, Path rootDirectory, InlineHelperProvider helperProvider) {
         this.title = title;
         this.rootDirectory = rootDirectory;
         this.helperProvider = helperProvider;
@@ -78,7 +79,9 @@ public class ReferenceHtmlPageWriter {
 
         String fileName = getFileName(beanDoc.getClassName());
 
-        InlineTagHelper inlineHelper = helperProvider.forElement(beanDoc.getClassName());
+        String pathToRoot = DocUtil.pathToRoot(beanDoc.getClassName());
+
+        InlineTagHelper inlineHelper = helperProvider.forElement(pathToRoot);
 
         HtmlContext htmlContext = inlineHelper::processLink;
 
@@ -90,9 +93,9 @@ public class ReferenceHtmlPageWriter {
             PrintWriter out = new PrintWriter(
                     new FileOutputStream(file.toFile()));
 
-            String firstSentence = pageWriter.writePageTo(beanDoc, out);
+            pageWriter.writePageTo(beanDoc, out);
 
-            return new IndexLine(beanDoc.getName(), fileName, firstSentence);
+            return new IndexLine(beanDoc.getName(), fileName, beanDoc.getFirstSentence());
 
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -115,7 +118,7 @@ public class ReferenceHtmlPageWriter {
             }
         }
 
-        public String writePageTo(BeanDoc beanDoc, PrintWriter out) {
+        public void writePageTo(BeanDoc beanDoc, PrintWriter out) {
 
             out.println("<html>");
             out.println("  <head>");
@@ -214,13 +217,11 @@ public class ReferenceHtmlPageWriter {
                 }
             }
             out.println("    <hr/>");
-            out.println("    <font size='-1' align='center'>" + ManualWriter.COPYWRITE + "</font>");
+            out.println("    <font size='-1' align='center'>" + HtmlReferenceWriter.COPYWRITE + "</font>");
             out.println("	 </body>");
             out.println("  </html>");
 
             out.close();
-
-            return toHtml(beanDoc.getFirstSentence(), "");
         }
 
     }

@@ -1,10 +1,14 @@
 /*
  * Copyright (c) 2005, Rob Gordon.
  */
-package org.oddjob.doc.doclet;
+package org.oddjob.doc.html;
 
 import org.oddjob.arooa.beandocs.BeanDoc;
 import org.oddjob.arooa.beandocs.BeanDocArchive;
+import org.oddjob.doc.doclet.IndexLine;
+import org.oddjob.doc.doclet.InlineHelperProvider;
+import org.oddjob.doc.doclet.ReferenceWriter;
+import org.oddjob.doc.util.InlineTagHelper;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -19,13 +23,13 @@ import java.util.Objects;
  *
  * @author Rob Gordon.
  */
-public class ManualWriter {
+public class HtmlReferenceWriter implements ReferenceWriter {
 
     public static final String COPYWRITE = "(c) R Gordon Ltd 2005 - Present";
 
-    private final ReferenceHtmlPageWriter pageWriter;
-    public ManualWriter(String directory, String title, InlineHelperProvider helperProvider) {
-        this.pageWriter = new ReferenceHtmlPageWriter(
+    private final HtmlPageWriter pageWriter;
+    public HtmlReferenceWriter(String directory, String title, InlineHelperProvider helperProvider) {
+        this.pageWriter = new HtmlPageWriter(
                 Objects.requireNonNullElse(title, "Oddjob Reference"),
                 Path.of(directory),
                 helperProvider);
@@ -77,6 +81,10 @@ public class ManualWriter {
 
         String title = pageWriter.getTitle();
 
+        InlineTagHelper inlineHelper = pageWriter.getHelperProvider().forElement(".");
+
+        HtmlContext htmlContext = inlineHelper::processLink;
+
         out.println("<html>");
         out.println("  <head>");
         out.println("  [<a href=\"../index.html\">Home</a>]");
@@ -87,21 +95,21 @@ public class ManualWriter {
         out.println("    <ul>");
         out.println("    <li>Jobs");
         out.println("      <ul>");
-        for (IndexLine beanDoc : jobs) {
+        for (IndexLine indexLine : jobs) {
             out.println("        <li>");
-            out.println("          <a href='" + beanDoc.getFileName()
-                    + "'>" + beanDoc.getName() +
-                    "</a> - " + beanDoc.getFirstSentence());
+            out.println("          <a href='" + indexLine.getFileName()
+                    + "'>" + indexLine.getName() +
+                    "</a> - " + HtmlVisitor.visitAll(indexLine.getFirstSentence(), htmlContext));
             out.println("        </li>");
         }
         out.println("      </ul></li>");
         out.println("    <li>Types");
         out.println("      <ul>");
-        for (IndexLine beanDoc : types) {
+        for (IndexLine indexLine : types) {
             out.println("        <li>");
-            out.println("          <a href='" + beanDoc.getFileName()
-                    + "'>" + beanDoc.getName() +
-                    "</a> - " + beanDoc.getFirstSentence());
+            out.println("          <a href='" + indexLine.getFileName()
+                    + "'>" + indexLine.getName() +
+                    "</a> - " + HtmlVisitor.visitAll(indexLine.getFirstSentence(), htmlContext));
             out.println("        </li>");
         }
         out.println("      </ul></li>");
@@ -125,6 +133,7 @@ public class ManualWriter {
         return  indexLines;
     }
 
+    @Override
     public void createManual(BeanDocArchive archive) {
 
         List<IndexLine> jobIndexLines = writeAll(archive.allJobDoc());

@@ -11,10 +11,10 @@ public interface InlineHelperProvider {
     /**
      * Provide the helper.
      *
-     * @param qualifiedClassName The Name of the Components Class that this is a helper for.
+     * @param pathToRoot The Path to the root directory for relative links.
      *
      * @return The helper, never null.
      */
-    InlineTagHelper forElement(String qualifiedClassName);
+    InlineTagHelper forElement(String pathToRoot);
 
 }

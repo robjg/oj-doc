@@ -54,7 +54,12 @@ public class Archiver implements BeanDocArchive {
 
     }
 
-    /**
+	@Override
+	public BeanDoc docFor(String fqn) {
+		return jats.docFor(fqn);
+	}
+
+	/**
      * Job Doc in index order.
      * 
      * @return A List of BeanDoc.

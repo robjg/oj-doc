@@ -1,6 +1,5 @@
 package org.oddjob.doc.doclet;
 
-import org.oddjob.doc.util.DocUtil;
 import org.oddjob.doc.util.InlineTagHelper;
 
 import java.util.function.Function;
@@ -21,9 +20,7 @@ public class ReferenceHelperProvider implements InlineHelperProvider {
     }
 
     @Override
-    public InlineTagHelper forElement(String qualifiedClassName) {
-
-        String pathToRoot = DocUtil.pathToRoot(qualifiedClassName);
+    public InlineTagHelper forElement(String pathToRoot) {
 
         return new ReferenceInlineTagHelper(refLookup, apiDirFunc, pathToRoot);
     }
