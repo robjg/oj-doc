@@ -6,9 +6,7 @@ import org.oddjob.arooa.beandocs.ExampleDoc;
 import org.oddjob.arooa.beandocs.PropertyDoc;
 import org.oddjob.arooa.beandocs.element.BeanDocElement;
 import org.oddjob.doc.doclet.IndexLine;
-import org.oddjob.doc.doclet.InlineHelperProvider;
 import org.oddjob.doc.util.DocUtil;
-import org.oddjob.doc.util.InlineTagHelper;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,12 +24,12 @@ public class HtmlPageWriter {
 
     private final Path rootDirectory;
 
-    private final InlineHelperProvider helperProvider;
+    private final HtmlContextProvider contextProvider;
 
-    public HtmlPageWriter(String title, Path rootDirectory, InlineHelperProvider helperProvider) {
+    public HtmlPageWriter(String title, Path rootDirectory, HtmlContextProvider contextProvider) {
         this.title = title;
         this.rootDirectory = rootDirectory;
-        this.helperProvider = helperProvider;
+        this.contextProvider = contextProvider;
     }
 
     /**
@@ -66,8 +64,8 @@ public class HtmlPageWriter {
         return rootDirectory;
     }
 
-    public InlineHelperProvider getHelperProvider() {
-        return helperProvider;
+    public HtmlContextProvider getContextProvider() {
+        return contextProvider;
     }
 
     /**
@@ -81,9 +79,7 @@ public class HtmlPageWriter {
 
         String pathToRoot = DocUtil.pathToRoot(beanDoc.getClassName());
 
-        InlineTagHelper inlineHelper = helperProvider.forElement(pathToRoot);
-
-        HtmlContext htmlContext = inlineHelper::processLink;
+        HtmlContext htmlContext = contextProvider.contextFor(pathToRoot);
 
         PageWriter pageWriter = new PageWriter(htmlContext);
 

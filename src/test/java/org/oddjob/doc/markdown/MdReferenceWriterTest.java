@@ -43,6 +43,7 @@ class MdReferenceWriterTest {
         referenceMain.setSourcepath(oddjobSrc.toString());
         referenceMain.setLoaderPath(includes.toString());
         referenceMain.setWriterFactory(MdReferenceWriterFactory.class.getName());
+        referenceMain.setApiUrl("http://rgordon.co.uk/oddjob/1.6.0/api");
 
         int result = referenceMain.call();
 

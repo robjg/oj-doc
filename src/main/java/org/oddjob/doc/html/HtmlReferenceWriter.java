@@ -6,9 +6,7 @@ package org.oddjob.doc.html;
 import org.oddjob.arooa.beandocs.BeanDoc;
 import org.oddjob.arooa.beandocs.BeanDocArchive;
 import org.oddjob.doc.doclet.IndexLine;
-import org.oddjob.doc.doclet.InlineHelperProvider;
 import org.oddjob.doc.doclet.ReferenceWriter;
-import org.oddjob.doc.util.InlineTagHelper;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -28,11 +26,11 @@ public class HtmlReferenceWriter implements ReferenceWriter {
     public static final String COPYWRITE = "(c) R Gordon Ltd 2005 - Present";
 
     private final HtmlPageWriter pageWriter;
-    public HtmlReferenceWriter(String directory, String title, InlineHelperProvider helperProvider) {
+    public HtmlReferenceWriter(String directory, String title, HtmlContextProvider contextProvider) {
         this.pageWriter = new HtmlPageWriter(
                 Objects.requireNonNullElse(title, "Oddjob Reference"),
                 Path.of(directory),
-                helperProvider);
+                contextProvider);
     }
 
 
@@ -81,9 +79,7 @@ public class HtmlReferenceWriter implements ReferenceWriter {
 
         String title = pageWriter.getTitle();
 
-        InlineTagHelper inlineHelper = pageWriter.getHelperProvider().forElement(".");
-
-        HtmlContext htmlContext = inlineHelper::processLink;
+        HtmlContext htmlContext = pageWriter.getContextProvider().contextFor(".");
 
         out.println("<html>");
         out.println("  <head>");

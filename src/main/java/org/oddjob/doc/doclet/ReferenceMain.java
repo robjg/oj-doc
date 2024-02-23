@@ -33,6 +33,8 @@ public class ReferenceMain implements Callable<Integer> {
 
     private String writerFactory;
 
+    private String apiUrl;
+
     private boolean verbose;
 
     public static void main(String... args) {
@@ -57,6 +59,10 @@ public class ReferenceMain implements Callable<Integer> {
             }
             if ("-loaderpath".equals(arg)) {
                 main.setLoaderPath(args[++i]);
+                continue;
+            }
+            if ("-apiurl".equals(arg)) {
+                main.setApiUrl(args[++i]);
                 continue;
             }
             if (i == args.length - 1) {
@@ -108,6 +114,10 @@ public class ReferenceMain implements Callable<Integer> {
         Optional.ofNullable(this.writerFactory).ifPresent(wf -> {
             args.add("-writerfactory");
             args.add(wf);
+        });
+        Optional.ofNullable(this.apiUrl).ifPresent(url -> {
+            args.add("-apiurl");
+            args.add(url);
         });
 
         logger.info("Running javadoc with {}", args);
@@ -177,6 +187,14 @@ public class ReferenceMain implements Callable<Integer> {
 
     public void setWriterFactory(String writerFactory) {
         this.writerFactory = writerFactory;
+    }
+
+    public String getApiUrl() {
+        return apiUrl;
+    }
+
+    public void setApiUrl(String apiUrl) {
+        this.apiUrl = apiUrl;
     }
 
     public boolean isVerbose() {

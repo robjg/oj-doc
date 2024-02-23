@@ -5,6 +5,7 @@ import org.oddjob.arooa.beandocs.BeanDocArchive;
 import org.oddjob.arooa.beandocs.element.LinkElement;
 import org.oddjob.doc.doclet.ReferenceWriter;
 import org.oddjob.doc.doclet.ReferenceWriterFactory;
+import org.oddjob.doc.util.ApiLinkProvider;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -47,13 +48,7 @@ public class MdReferenceWriterFactory implements ReferenceWriterFactory {
     @Override
     public ReferenceWriter create() {
 
-        ApiLinkProvider linkProvider;
-        if (apiLink.contains(":")) {
-            linkProvider = new AbsoluteApiLink(apiLink);
-        }
-        else {
-            linkProvider = new RelativeApiLink(apiLink);
-        }
+        ApiLinkProvider linkProvider = ApiLinkProvider.providerFor(apiLink);
 
         MdContextProvider contextProvider = new ContextProviderImpl(linkProvider);
 
@@ -63,38 +58,6 @@ public class MdReferenceWriterFactory implements ReferenceWriterFactory {
                 contextProvider);
     }
 
-    interface ApiLinkProvider {
-
-        Function<String, String> apiLinkFor(String pathToRoot);
-    }
-
-    static class RelativeApiLink implements ApiLinkProvider {
-
-        private final String relativeLink;
-
-        RelativeApiLink(String relativeLink) {
-            this.relativeLink = relativeLink;
-        }
-
-        @Override
-        public Function<String, String> apiLinkFor(String pathToRoot) {
-            return fileName -> pathToRoot + "/" + relativeLink + "/" + fileName;
-        }
-    }
-
-    static class AbsoluteApiLink implements ApiLinkProvider {
-
-        private final String absoluteLink;
-
-        AbsoluteApiLink(String absoluteLink) {
-            this.absoluteLink = absoluteLink;
-        }
-
-        @Override
-        public Function<String, String> apiLinkFor(String pathToRoot) {
-            return fileName -> absoluteLink + "/" + fileName;
-        }
-    }
 
     class ContextProviderImpl implements MdContextProvider {
 
@@ -109,9 +72,9 @@ public class MdReferenceWriterFactory implements ReferenceWriterFactory {
 
             Function<String, String> apiLinkFor = apiLinkProvider.apiLinkFor(pathToRoot);
 
-            Function<String, String> refLink = fileName -> pathToRoot + "/" + fileName;
+            Function<String, String> refLinkFor = fileName -> pathToRoot + "/" + fileName;
 
-            return new MdContextImpl(archive, apiLinkFor, refLink);
+            return new MdContextImpl(archive, apiLinkFor, refLinkFor);
         }
     }
 
@@ -119,14 +82,14 @@ public class MdReferenceWriterFactory implements ReferenceWriterFactory {
 
         private final BeanDocArchive archive;
 
-        private final Function<String, String> apiLink;
+        private final Function<String, String> apiLinkFor;
 
-        private final Function<String, String> refLink;
+        private final Function<String, String> refLinkFor;
 
-        MdContextImpl(BeanDocArchive archive, Function<String, String> apiLink, Function<String, String> refLink) {
+        MdContextImpl(BeanDocArchive archive, Function<String, String> apiLinkFor, Function<String, String> refLinkFor) {
             this.archive = archive;
-            this.apiLink = apiLink;
-            this.refLink = refLink;
+            this.apiLinkFor = apiLinkFor;
+            this.refLinkFor = refLinkFor;
         }
 
         public String processLink(LinkElement linkElement) {
@@ -146,8 +109,8 @@ public class MdReferenceWriterFactory implements ReferenceWriterFactory {
 
             return Optional.ofNullable(archive.docFor(qualifiedType))
                     .map(BeanDoc::getName)
-                    .map(componentName -> "[" + componentName + "](" + refLink.apply(mdFileName) + ")")
-                    .orElseGet(() ->  "[" + qualifiedType + "](" + apiLink.apply(htmlFileName) + ")");
+                    .map(componentName -> "[" + componentName + "](" + refLinkFor.apply(mdFileName) + ")")
+                    .orElseGet(() ->  "[" + qualifiedType + "](" + apiLinkFor.apply(htmlFileName) + ")");
         }
     }
 

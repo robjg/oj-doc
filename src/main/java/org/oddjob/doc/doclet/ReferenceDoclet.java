@@ -32,6 +32,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -145,8 +146,7 @@ public class ReferenceDoclet implements Doclet {
             ReferenceWriterFactory writerFactory;
             if (options.writerFactory == null) {
                 writerFactory = new HtmlReferenceWriterFactory();
-            }
-            else {
+            } else {
                 writerFactory = (ReferenceWriterFactory) Class.forName(options.writerFactory)
                         .getConstructor().newInstance();
             }
@@ -154,7 +154,7 @@ public class ReferenceDoclet implements Doclet {
             writerFactory.setArchive(archiver);
             writerFactory.setDestination(destination);
             writerFactory.setTitle(title);
-            writerFactory.setApiLink("../api");
+            writerFactory.setApiLink(Objects.requireNonNullElse(options.apiUrl, "../api"));
 
             ReferenceWriter referenceWriter = writerFactory.create();
             referenceWriter.createManual(archiver);
@@ -343,38 +343,70 @@ public class ReferenceDoclet implements Doclet {
                         return true;
                     }
                 },
-            new Option() {
-                @Override
-                public int getArgumentCount() {
-                    return 1;
-                }
+                new Option() {
+                    @Override
+                    public int getArgumentCount() {
+                        return 1;
+                    }
 
-                @Override
-                public String getDescription() {
-                    return "Writer Factory";
-                }
+                    @Override
+                    public String getDescription() {
+                        return "Writer Factory";
+                    }
 
-                @Override
-                public Kind getKind() {
-                    return Kind.STANDARD;
-                }
+                    @Override
+                    public Kind getKind() {
+                        return Kind.STANDARD;
+                    }
 
-                @Override
-                public List<String> getNames() {
-                    return List.of("-writerfactory");
-                }
+                    @Override
+                    public List<String> getNames() {
+                        return List.of("-writerfactory");
+                    }
 
-                @Override
-                public String getParameters() {
-                    return "Factory Class";
-                }
+                    @Override
+                    public String getParameters() {
+                        return "Factory Class";
+                    }
 
-                @Override
-                public boolean process(String option, List<String> arguments) {
-                    options.writerFactory = arguments.get(0);
-                    return true;
+                    @Override
+                    public boolean process(String option, List<String> arguments) {
+                        options.writerFactory = arguments.get(0);
+                        return true;
+                    }
+                },
+                new Option() {
+                    @Override
+                    public int getArgumentCount() {
+                        return 1;
+                    }
+
+                    @Override
+                    public String getDescription() {
+                        return "URL for the Oddjob API";
+                    }
+
+                    @Override
+                    public Kind getKind() {
+                        return Kind.STANDARD;
+                    }
+
+                    @Override
+                    public List<String> getNames() {
+                        return List.of("-apiurl");
+                    }
+
+                    @Override
+                    public String getParameters() {
+                        return "api-url";
+                    }
+
+                    @Override
+                    public boolean process(String option, List<String> arguments) {
+                        options.apiUrl = arguments.get(0);
+                        return true;
+                    }
                 }
-            }
         );
     }
 
@@ -397,8 +429,7 @@ public class ReferenceDoclet implements Doclet {
 
             if (loaderPath == null) {
                 resourceClassLoader = getClass().getClassLoader();
-            }
-            else {
+            } else {
                 resourceClassLoader = classLoaderFor(loaderPath);
             }
 
@@ -437,5 +468,7 @@ public class ReferenceDoclet implements Doclet {
         private String loaderPath;
 
         private String writerFactory;
+
+        private String apiUrl;
     }
 }
