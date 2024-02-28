@@ -67,7 +67,10 @@ public class BlockVisitor implements DocTreeVisitor<Void, VisitorContext> {
 
     @Override
     public Void visitEndElement(EndElementTree node, VisitorContext visitorContext) {
-        beanDocConsumer.accept(StandardElement.of(node.toString()));
+        EndHtmlElement element = new EndHtmlElement();
+        element.setName(node.getName().toString());
+        element.setText(node.toString());
+        beanDocConsumer.accept(element);
         return null;
     }
 
@@ -189,7 +192,10 @@ public class BlockVisitor implements DocTreeVisitor<Void, VisitorContext> {
 
     @Override
     public Void visitStartElement(StartElementTree node, VisitorContext visitorContext) {
-        beanDocConsumer.accept(StandardElement.of(node.toString()));
+        StartHtmlElement element = new StartHtmlElement();
+        element.setName(node.getName().toString());
+        element.setText(node.toString());
+        beanDocConsumer.accept(element);
         return null;
     }
 

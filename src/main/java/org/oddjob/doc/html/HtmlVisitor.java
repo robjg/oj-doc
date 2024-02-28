@@ -73,4 +73,14 @@ public class HtmlVisitor implements DocElementVisitor<HtmlContext, String> {
     public String visitStandard(StandardElement element, HtmlContext context) {
         return element.getText();
     }
+
+    @Override
+    public String visitStartHtmlElement(StartHtmlElement element, HtmlContext context) {
+        return element.getText();
+    }
+
+    @Override
+    public String visitEndHtmlElement(EndHtmlElement element, HtmlContext context) {
+        return element.getText();
+    }
 }

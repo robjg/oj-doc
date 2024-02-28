@@ -10,7 +10,33 @@ import java.util.List;
  */
 public class MdVisitor implements DocElementVisitor<MdContext, String> {
 
+    static class Tag {
+
+        private final String tag;
+
+        Tag(String tag) {
+            this.tag = tag;
+        }
+
+        boolean is(StartHtmlElement element) {
+            return tag.equalsIgnoreCase(element.getName());
+        }
+
+        boolean is(EndHtmlElement element) {
+            return tag.equalsIgnoreCase(element.getName());
+        }
+    }
+
+    final static Tag P_TAG = new Tag("P");
+
+    final static Tag UL_TAG = new Tag("UL");
+
+    final static Tag LI_TAG = new Tag("LI");
+
+
     private final boolean noNewLines;
+
+    private HtmlHandler htmlHandler = new RootHandler();
 
     public MdVisitor(boolean noNewLines) {
         this.noNewLines = noNewLines;
@@ -80,12 +106,100 @@ public class MdVisitor implements DocElementVisitor<MdContext, String> {
 
     @Override
     public String visitStandard(StandardElement element, MdContext context) {
-        String text = element.getText();
-        if (noNewLines) {
-            return text.replaceAll("\n(\r)?", " ");
+        return htmlHandler.visitStandard(element);
+    }
+
+    @Override
+    public String visitStartHtmlElement(StartHtmlElement element, MdContext context) {
+        return htmlHandler.startElement(element);
+    }
+
+    @Override
+    public String visitEndHtmlElement(EndHtmlElement element, MdContext context) {
+        return htmlHandler.endElement(element);
+    }
+
+    interface HtmlHandler {
+
+        String visitStandard(StandardElement element);
+
+        String startElement(StartHtmlElement element);
+
+        String endElement(EndHtmlElement element);
+    }
+
+    class RootHandler implements HtmlHandler {
+
+        @Override
+        public String visitStandard(StandardElement element) {
+            String text = element.getText();
+            if (noNewLines) {
+                return removeNewLines(text);
+            }
+            else {
+                return text.replaceAll("[\\t ]*\\r?\\n[\\t ]+", "\n");
+            }
         }
-        else {
-            return text;
+
+        @Override
+        public String startElement(StartHtmlElement element) {
+            if (P_TAG.is(element)) {
+                return "\n";
+            }
+            else if (UL_TAG.is(element)) {
+                htmlHandler = new UnorderedHandler();
+                return "";
+            }
+            else {
+                return element.getText();
+            }
         }
+
+        @Override
+        public String endElement(EndHtmlElement element) {
+            if (P_TAG.is(element)) {
+                return "\n";
+            }
+            else {
+                return element.getText();
+            }
+        }
+    }
+
+    class UnorderedHandler implements HtmlHandler {
+
+        @Override
+        public String visitStandard(StandardElement element) {
+            return removeNewLines(element.getText());
+        }
+
+        @Override
+        public String startElement(StartHtmlElement element) {
+            if (LI_TAG.is(element)) {
+                return "\n- ";
+            }
+            else {
+                return element.getText();
+            }
+        }
+
+        @Override
+        public String endElement(EndHtmlElement element) {
+            if (LI_TAG.is(element)) {
+                return "";
+            }
+            else if (UL_TAG.is(element)) {
+                htmlHandler = new RootHandler();
+                return "\n";
+            }
+            else {
+                return element.getText();
+            }
+        }
+    }
+
+    public static String removeNewLines(String text) {
+        return text.replaceFirst("^\\s*", "")
+                .replaceAll("\\s+", " ");
     }
 }

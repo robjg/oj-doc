@@ -196,8 +196,9 @@ public class MdPageWriter {
                 }
             }
             out.println();
-            out.println("<hr/>");
-            out.println("<font size='-1' align='center'>" + HtmlReferenceWriter.COPYWRITE + "</font>");
+            out.println("-----------------------");
+            out.println();
+            out.println("<div style='font-size: smaller; text-align: center;'>" + HtmlReferenceWriter.COPYWRITE + "</div>");
 
             out.close();
         }
