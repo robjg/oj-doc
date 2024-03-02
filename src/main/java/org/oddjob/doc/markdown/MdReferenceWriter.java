@@ -97,12 +97,18 @@ public class MdReferenceWriter implements ReferenceWriter {
             out.println("- [" + indexLine.getName() + "](" + indexLine.getFileName()
                     + ") - " +  MdVisitor.visitAll(indexLine.getFirstSentence(), mdContext, true));
         }
-        out.println();
 
-        out.println("---");
-        out.println("<font size='-1' align='center'>" + COPYWRITE + "</font>");
+        footer(out);
 
         out.close();
+    }
+
+    static void footer(PrintWriter out) {
+
+        out.println();
+        out.println("-----------------------");
+        out.println();
+        out.println("<div style='font-size: smaller; text-align: center;'>" + COPYWRITE + "</div>");
     }
 
     public List<IndexLine> writeAll(List<? extends BeanDoc> all) {

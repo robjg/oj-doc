@@ -31,6 +31,8 @@ public class ReferenceMain implements Callable<Integer> {
 
     private String loaderPath;
 
+    private String descriptorUrl;
+
     private String writerFactory;
 
     private String apiUrl;
@@ -59,6 +61,10 @@ public class ReferenceMain implements Callable<Integer> {
             }
             if ("-loaderpath".equals(arg)) {
                 main.setLoaderPath(args[++i]);
+                continue;
+            }
+            if ("-descriptorurl".equals(arg)) {
+                main.setDescriptorUrl(args[++i]);
                 continue;
             }
             if ("-apiurl".equals(arg)) {
@@ -110,6 +116,10 @@ public class ReferenceMain implements Callable<Integer> {
         Optional.ofNullable(this.loaderPath).ifPresent(lp -> {
             args.add("-loaderpath");
             args.add(lp);
+        });
+        Optional.ofNullable(this.descriptorUrl).ifPresent(dp -> {
+            args.add("-descriptorurl");
+            args.add(dp);
         });
         Optional.ofNullable(this.writerFactory).ifPresent(wf -> {
             args.add("-writerfactory");
@@ -183,6 +193,14 @@ public class ReferenceMain implements Callable<Integer> {
 
     public String getWriterFactory() {
         return writerFactory;
+    }
+
+    public String getDescriptorUrl() {
+        return descriptorUrl;
+    }
+
+    public void setDescriptorUrl(String descriptorUrl) {
+        this.descriptorUrl = descriptorUrl;
     }
 
     public void setWriterFactory(String writerFactory) {

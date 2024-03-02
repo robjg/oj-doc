@@ -12,8 +12,7 @@ import org.oddjob.arooa.beandocs.SessionArooaDocFactory;
 import org.oddjob.arooa.beandocs.WriteableArooaDoc;
 import org.oddjob.arooa.convert.convertlets.FileConvertlets;
 import org.oddjob.arooa.deploy.ClassPathDescriptorFactory;
-import org.oddjob.arooa.deploy.LinkedDescriptor;
-import org.oddjob.arooa.standard.BaseArooaDescriptor;
+import org.oddjob.arooa.deploy.URLDescriptorFactory;
 import org.oddjob.arooa.standard.StandardArooaSession;
 import org.oddjob.arooa.utils.ClassUtils;
 import org.oddjob.doc.html.HtmlReferenceWriterFactory;
@@ -56,48 +55,45 @@ public class ReferenceDoclet implements Doclet {
         return new URLClassLoader(urls);
     }
 
+    SessionArooaDocFactory loadDescriptor(String descriptorUrl) throws MalformedURLException {
+
+        if (descriptorUrl == null) {
+
+            ClassPathDescriptorFactory factory
+                    = new ClassPathDescriptorFactory();
+
+            this.reporter.print(Diagnostic.Kind.NOTE, "Finding Arooa Descriptor " +
+                    factory.getResource() + " on doclet classpath");
+
+            ArooaDescriptor descriptor = factory.createDescriptor(
+                    ReferenceDoclet.class.getClassLoader());
+
+            return new SessionArooaDocFactory(
+                    new StandardArooaSession(descriptor));
+
+        } else {
+
+            this.reporter.print(Diagnostic.Kind.NOTE, "Finding Arooa Descriptor " +
+                    descriptorUrl);
+
+            URLDescriptorFactory urlDescriptorFactory = new URLDescriptorFactory(
+                    new URL(descriptorUrl));
+
+            ArooaDescriptor descriptor = urlDescriptorFactory.createDescriptor(
+                    getClass().getClassLoader());
+
+            return new SessionArooaDocFactory(
+                    new StandardArooaSession(), descriptor);
+        }
+    }
+
     class Main {
 
         private final JobsAndTypes jats;
 
-        public Main(String classPath, String descriptorResource) throws MalformedURLException {
+        public Main(String descriptorUrl) throws MalformedURLException {
 
-            SessionArooaDocFactory docsFactory;
-
-            ClassPathDescriptorFactory factory
-                    = new ClassPathDescriptorFactory();
-            if (descriptorResource != null) {
-                factory.setResource(descriptorResource);
-            }
-
-            if (classPath == null) {
-
-                ArooaDescriptor descriptor = factory.createDescriptor(
-                        getClass().getClassLoader());
-
-                docsFactory = new SessionArooaDocFactory(
-                        new StandardArooaSession(descriptor));
-            } else {
-                ClassLoader classLoader = classLoaderFor(classPath);
-
-                factory.setExcludeParent(true);
-
-                ArooaDescriptor thisDescriptor =
-                        factory.createDescriptor(classLoader);
-
-                if (thisDescriptor == null) {
-                    throw new NullPointerException("No Descriptor for path " +
-                            classPath);
-                }
-
-                ArooaDescriptor descriptor =
-                        new LinkedDescriptor(
-                                thisDescriptor,
-                                new BaseArooaDescriptor(classLoader));
-
-                docsFactory = new SessionArooaDocFactory(
-                        new StandardArooaSession(), descriptor);
-            }
+            SessionArooaDocFactory docsFactory = loadDescriptor(descriptorUrl);
 
             WriteableArooaDoc jobs =
                     docsFactory.createBeanDocs(ArooaType.COMPONENT);
@@ -223,7 +219,7 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public String getDescription() {
-                        return "Arooa Descriptor Path";
+                        return "Arooa Descriptor URL";
                     }
 
                     @Override
@@ -233,49 +229,17 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public List<String> getNames() {
-                        return List.of("-dp");
+                        return List.of("-descriptorurl");
                     }
 
                     @Override
                     public String getParameters() {
-                        return "Path";
+                        return "URL";
                     }
 
                     @Override
                     public boolean process(String option, List<String> arguments) {
-                        options.descriptorPath = arguments.get(0);
-                        return true;
-                    }
-                },
-                new Option() {
-                    @Override
-                    public int getArgumentCount() {
-                        return 1;
-                    }
-
-                    @Override
-                    public String getDescription() {
-                        return "Arooa Descriptor Resource";
-                    }
-
-                    @Override
-                    public Kind getKind() {
-                        return Kind.STANDARD;
-                    }
-
-                    @Override
-                    public List<String> getNames() {
-                        return List.of("-dr");
-                    }
-
-                    @Override
-                    public String getParameters() {
-                        return "Resource";
-                    }
-
-                    @Override
-                    public boolean process(String option, List<String> arguments) {
-                        options.destination = arguments.get(0);
+                        options.descriptorUrl = arguments.get(0);
                         return true;
                     }
                 },
@@ -439,7 +403,7 @@ public class ReferenceDoclet implements Doclet {
                     ClassUtils.classLoaderStack(resourceClassLoader, "Resource Loader Class Loader"));
 
             Main md = new Main(
-                    options.descriptorPath, options.resource);
+                    options.descriptorUrl);
 
             result = md.process(environment, options.destination,
                     options.title, resourceClassLoader);
@@ -459,9 +423,7 @@ public class ReferenceDoclet implements Doclet {
 
         private String destination;
 
-        private String descriptorPath;
-
-        private String resource;
+        private String descriptorUrl;
 
         private String title;
 

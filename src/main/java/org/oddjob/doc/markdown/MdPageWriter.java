@@ -6,7 +6,6 @@ import org.oddjob.arooa.beandocs.ExampleDoc;
 import org.oddjob.arooa.beandocs.PropertyDoc;
 import org.oddjob.arooa.beandocs.element.BeanDocElement;
 import org.oddjob.doc.doclet.IndexLine;
-import org.oddjob.doc.html.HtmlReferenceWriter;
 import org.oddjob.doc.util.DocUtil;
 
 import java.io.FileOutputStream;
@@ -195,10 +194,8 @@ public class MdPageWriter {
                     out.println();
                 }
             }
-            out.println();
-            out.println("-----------------------");
-            out.println();
-            out.println("<div style='font-size: smaller; text-align: center;'>" + HtmlReferenceWriter.COPYWRITE + "</div>");
+
+            MdReferenceWriter.footer(out);
 
             out.close();
         }
