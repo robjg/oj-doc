@@ -17,6 +17,8 @@ public class ReferenceMain implements Callable<Integer> {
 
     private static final Logger logger = LoggerFactory.getLogger(ReferenceDoclet.class);
 
+    public static final String SOURCE_PATH_OPTION = "-sourcepath";
+
     private String name;
 
     private String sourcepath;
@@ -51,23 +53,23 @@ public class ReferenceMain implements Callable<Integer> {
 
         for (int i = 0; i < args.length; ++i) {
             String arg = args[i];
-            if ("-sourcepath".equals(arg)) {
+            if (SOURCE_PATH_OPTION.equals(arg)) {
                 main.setSourcepath(args[++i]);
                 continue;
             }
-            if ("-d".equals(arg)) {
+            if (ReferenceDoclet.DESTINATION_OPTION.equals(arg)) {
                 main.setDirectory(args[++i]);
                 continue;
             }
-            if ("-loaderpath".equals(arg)) {
+            if (ReferenceDoclet.LOADER_PATH_OPTION.equals(arg)) {
                 main.setLoaderPath(args[++i]);
                 continue;
             }
-            if ("-descriptorurl".equals(arg)) {
+            if (ReferenceDoclet.DESCRIPTOR_URL_OPTION.equals(arg)) {
                 main.setDescriptorUrl(args[++i]);
                 continue;
             }
-            if ("-apiurl".equals(arg)) {
+            if (ReferenceDoclet.API_URL_OPTION.equals(arg)) {
                 main.setApiUrl(args[++i]);
                 continue;
             }
@@ -102,10 +104,10 @@ public class ReferenceMain implements Callable<Integer> {
             args.add("-docletpath");
             args.add(dp);
         });
-        args.add("-sourcepath");
+        args.add(SOURCE_PATH_OPTION);
         args.add(sourcepath);
         args.add("--ignore-source-errors");
-        args.add("-d");
+        args.add(ReferenceDoclet.DESTINATION_OPTION);
         args.add(dest);
         args.add("-private");
         args.add("-subpackages");
@@ -114,19 +116,19 @@ public class ReferenceMain implements Callable<Integer> {
             args.add("-verbose");
         }
         Optional.ofNullable(this.loaderPath).ifPresent(lp -> {
-            args.add("-loaderpath");
+            args.add(ReferenceDoclet.LOADER_PATH_OPTION);
             args.add(lp);
         });
         Optional.ofNullable(this.descriptorUrl).ifPresent(dp -> {
-            args.add("-descriptorurl");
+            args.add(ReferenceDoclet.DESCRIPTOR_URL_OPTION);
             args.add(dp);
         });
         Optional.ofNullable(this.writerFactory).ifPresent(wf -> {
-            args.add("-writerfactory");
+            args.add(ReferenceDoclet.WRITER_FACTORY_OPTION);
             args.add(wf);
         });
         Optional.ofNullable(this.apiUrl).ifPresent(url -> {
-            args.add("-apiurl");
+            args.add(ReferenceDoclet.API_URL_OPTION);
             args.add(url);
         });
 

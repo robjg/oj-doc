@@ -41,6 +41,18 @@ import java.util.Set;
  */
 public class ReferenceDoclet implements Doclet {
 
+    public static final String DESTINATION_OPTION = "-d";
+
+    public static final String DESCRIPTOR_URL_OPTION = "-descriptorurl";
+
+    public static final String TITLE_OPTION = "-t";
+
+    public static final String LOADER_PATH_OPTION = "-loaderpath";
+
+    public static final String WRITER_FACTORY_OPTION = "-writerfactory";
+
+    public static final String API_URL_OPTION = "-apiurl";
+
     private final Options options = new Options();
 
     private Reporter reporter;
@@ -108,7 +120,10 @@ public class ReferenceDoclet implements Doclet {
             return jats;
         }
 
-        boolean process(DocletEnvironment docEnv, String destination, String title, ClassLoader resourceLoader)
+        boolean process(DocletEnvironment docEnv,
+                        String destination,
+                        String title,
+                        ClassLoader resourceLoader)
                 throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
 
             LoaderProvider loaderProvider = new UnknownInlineLoaderProvider(resourceLoader);
@@ -137,7 +152,8 @@ public class ReferenceDoclet implements Doclet {
                 }
             }
 
-            reporter.print(Diagnostic.Kind.NOTE, "Writing Manual with Archive=" + archiver);
+            reporter.print(Diagnostic.Kind.NOTE, "Writing Manual with Archive=" + archiver +
+                    " to " + destination);
 
             ReferenceWriterFactory writerFactory;
             if (options.writerFactory == null) {
@@ -197,7 +213,7 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public List<String> getNames() {
-                        return List.of("-d");
+                        return List.of(DESTINATION_OPTION);
                     }
 
                     @Override
@@ -229,7 +245,7 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public List<String> getNames() {
-                        return List.of("-descriptorurl");
+                        return List.of(DESCRIPTOR_URL_OPTION);
                     }
 
                     @Override
@@ -261,7 +277,7 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public List<String> getNames() {
-                        return List.of("-t");
+                        return List.of(TITLE_OPTION);
                     }
 
                     @Override
@@ -293,7 +309,7 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public List<String> getNames() {
-                        return List.of("-loaderpath");
+                        return List.of(LOADER_PATH_OPTION);
                     }
 
                     @Override
@@ -325,7 +341,7 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public List<String> getNames() {
-                        return List.of("-writerfactory");
+                        return List.of(WRITER_FACTORY_OPTION);
                     }
 
                     @Override
@@ -357,7 +373,7 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public List<String> getNames() {
-                        return List.of("-apiurl");
+                        return List.of(API_URL_OPTION);
                     }
 
                     @Override
