@@ -3,7 +3,7 @@
 Used to create the Oddjob Reference s. 
 
 The Oddjob source documentation itself is
-in the [oj-examples](../oj-examples) repo.
+in the [oj-examples](https://github.com/robjg/oj-examples) repo.
 
 This module contains 
 - A Doclet that is able to process bespoke tags in the source
@@ -61,7 +61,7 @@ plain text.
 
 The oj-doc module is built with a provided dependency on Arooa. This is so that 
 the Post Processor job can be
-run from Oddjob (see [oj-assembly](../oj-assembly) for how this happens). Because of 
+run from Oddjob (see [oj-assembly](https://github.com/robjg/oj-assembly) for how this happens). Because of 
 this when using the Doclet or Taglets outside Oddjob (i.e. in Maven or Ant) then
 the Arooa Artifact must be added to the doclet or artifact classpath.
 
