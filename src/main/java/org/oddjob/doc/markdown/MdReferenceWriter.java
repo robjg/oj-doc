@@ -86,16 +86,30 @@ public class MdReferenceWriter implements ReferenceWriter {
         out.println();
         out.println("### Jobs");
         out.println();
-        for (IndexLine indexLine : jobs) {
-            out.println("- [" + indexLine.getName() + "](" + indexLine.getFileName()
-                    + ") - " + MdVisitor.visitAll(indexLine.getFirstSentence(), mdContext, true));
+        if (jobs.isEmpty()) {
+            out.println();
+            out.println("> No Jobs Defined.");
+            out.println();
+        }
+        else {
+            for (IndexLine indexLine : jobs) {
+                out.println("- [" + indexLine.getName() + "](" + indexLine.getFileName()
+                        + ") - " + MdVisitor.visitAsLine(indexLine.getFirstSentence(), mdContext));
+            }
         }
         out.println();
         out.println("### Types");
         out.println("");
-        for (IndexLine indexLine : types) {
-            out.println("- [" + indexLine.getName() + "](" + indexLine.getFileName()
-                    + ") - " +  MdVisitor.visitAll(indexLine.getFirstSentence(), mdContext, true));
+        if (types.isEmpty()) {
+            out.println();
+            out.println("> No Types Defined.");
+            out.println();
+        }
+        else {
+            for (IndexLine indexLine : types) {
+                out.println("- [" + indexLine.getName() + "](" + indexLine.getFileName()
+                        + ") - " + MdVisitor.visitAsLine(indexLine.getFirstSentence(), mdContext));
+            }
         }
 
         footer(out);

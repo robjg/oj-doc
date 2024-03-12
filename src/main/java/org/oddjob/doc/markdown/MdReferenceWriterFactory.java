@@ -1,15 +1,14 @@
 package org.oddjob.doc.markdown;
 
-import org.oddjob.arooa.beandocs.BeanDoc;
 import org.oddjob.arooa.beandocs.BeanDocArchive;
 import org.oddjob.arooa.beandocs.element.LinkElement;
 import org.oddjob.doc.doclet.ReferenceWriter;
 import org.oddjob.doc.doclet.ReferenceWriterFactory;
 import org.oddjob.doc.util.ApiLinkProvider;
+import org.oddjob.doc.util.LinkProcessor;
+import org.oddjob.doc.util.LinkProcessorProvider;
 
 import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Function;
 
 /**
  * Creates an {@link ReferenceWriter} for Markdown.
@@ -61,57 +60,32 @@ public class MdReferenceWriterFactory implements ReferenceWriterFactory {
 
     class ContextProviderImpl implements MdContextProvider {
 
-        private final ApiLinkProvider apiLinkProvider;
+        private final LinkProcessorProvider linkProcessorProvider;
 
         ContextProviderImpl(ApiLinkProvider apiLinkProvider) {
-            this.apiLinkProvider = apiLinkProvider;
+            this.linkProcessorProvider = MarkdownLinks.newProcessorProvider(apiLinkProvider, archive);
         }
 
         @Override
         public MdContext contextFor(String pathToRoot) {
 
-            Function<String, String> apiLinkFor = apiLinkProvider.apiLinkFor(pathToRoot);
-
-            Function<String, String> refLinkFor = fileName -> pathToRoot + "/" + fileName;
-
-            return new MdContextImpl(archive, apiLinkFor, refLinkFor);
+            return new MdContextImpl(linkProcessorProvider.linkProcessorFor(pathToRoot));
         }
     }
 
     static class MdContextImpl implements MdContext {
 
-        private final BeanDocArchive archive;
+        private final LinkProcessor linkProcessor;
 
-        private final Function<String, String> apiLinkFor;
-
-        private final Function<String, String> refLinkFor;
-
-        MdContextImpl(BeanDocArchive archive, Function<String, String> apiLinkFor, Function<String, String> refLinkFor) {
-            this.archive = archive;
-            this.apiLinkFor = apiLinkFor;
-            this.refLinkFor = refLinkFor;
+        MdContextImpl(LinkProcessor linkProcessor) {
+            this.linkProcessor = linkProcessor;
         }
 
         public String processLink(LinkElement linkElement) {
 
-            String qualifiedType = linkElement.getQualifiedType();
-
-            if (qualifiedType == null) {
-                String link = linkElement.getSignature();
-                if (linkElement.getLabel() != null) {
-                    link += " " + linkElement.getLabel();
-                }
-                return "<code>" + link + "</code>";
-            }
-
-            String htmlFileName = qualifiedType.replace('.', '/') + ".html";
-            String mdFileName = qualifiedType.replace('.', '/') + ".md";
-
-            return Optional.ofNullable(archive.docFor(qualifiedType))
-                    .map(BeanDoc::getName)
-                    .map(componentName -> "[" + componentName + "](" + refLinkFor.apply(mdFileName) + ")")
-                    .orElseGet(() ->  "[" + qualifiedType + "](" + apiLinkFor.apply(htmlFileName) + ")");
+            return linkProcessor.processLink(linkElement);
         }
+
     }
 
 }

@@ -1,7 +1,6 @@
 package org.oddjob.doc.markdown;
 
 import org.oddjob.arooa.beandocs.element.*;
-import org.oddjob.doc.html.PlainTextToHtml;
 
 import java.util.List;
 
@@ -36,6 +35,8 @@ public class MdVisitor implements DocElementVisitor<MdContext, String> {
 
     private final boolean noNewLines;
 
+    private boolean startSection = true;
+
     private HtmlHandler htmlHandler = new RootHandler();
 
     public MdVisitor(boolean noNewLines) {
@@ -50,14 +51,23 @@ public class MdVisitor implements DocElementVisitor<MdContext, String> {
         return new MdVisitor(noNewLines);
     }
 
-    public static String visitAll(List<? extends BeanDocElement> elements, MdContext mdContext) {
+    public static String visitAsSection(List<? extends BeanDocElement> elements, MdContext mdContext) {
 
-        return visitAll(elements, mdContext, false);
+        return doVisit(elements, mdContext, false);
     }
 
-    public static String visitAll(List<? extends BeanDocElement> elements,
-                                  MdContext mdContext,
-                                  boolean noNewLines) {
+    public static String visitAsLine(List<? extends BeanDocElement> elements,
+                                     MdContext mdContext) {
+        return doVisit(elements, mdContext, true);
+    }
+
+    static String doVisit(List<? extends BeanDocElement> elements,
+                   MdContext mdContext,
+                   boolean noNewLines) {
+
+        if (elements == null || elements.isEmpty()) {
+            return "";
+        }
 
         MdVisitor mdVisitor = MdVisitor.instance(noNewLines);
 
@@ -65,6 +75,7 @@ public class MdVisitor implements DocElementVisitor<MdContext, String> {
         for (BeanDocElement element : elements) {
             builder.append(element.accept(mdVisitor, mdContext));
         }
+
         return builder.toString();
     }
 
@@ -76,17 +87,17 @@ public class MdVisitor implements DocElementVisitor<MdContext, String> {
 
     @Override
     public String visitPreformattedBlock(PreformattedBlock element, MdContext context) {
-        return PlainTextToHtml.toHtml(element);
+        return "```\n" + element.getText().stripTrailing() + "\n```\n";
     }
 
     @Override
     public String visitJavaCodeBlock(JavaCodeBlock element, MdContext context) {
-        return "```java\n" + element.getCode() + "\n```\n";
+        return "```java\n" + element.getCode().stripTrailing() + "\n```\n";
     }
 
     @Override
     public String visitXmlBlock(XmlBlock element, MdContext context) {
-        return "```xml\n" + element.getXml() + "\n```\n";
+        return "```xml\n" + element.getXml().stripTrailing() + "\n```\n";
     }
 
     @Override
@@ -135,9 +146,8 @@ public class MdVisitor implements DocElementVisitor<MdContext, String> {
             String text = element.getText();
             if (noNewLines) {
                 return removeNewLines(text);
-            }
-            else {
-                return text.replaceAll("[\\t ]*\\r?\\n[\\t ]+", "\n");
+            } else {
+                return pruneNewlines(text);
             }
         }
 
@@ -145,12 +155,10 @@ public class MdVisitor implements DocElementVisitor<MdContext, String> {
         public String startElement(StartHtmlElement element) {
             if (P_TAG.is(element)) {
                 return "\n";
-            }
-            else if (UL_TAG.is(element)) {
+            } else if (UL_TAG.is(element)) {
                 htmlHandler = new UnorderedHandler();
                 return "";
-            }
-            else {
+            } else {
                 return element.getText();
             }
         }
@@ -159,8 +167,7 @@ public class MdVisitor implements DocElementVisitor<MdContext, String> {
         public String endElement(EndHtmlElement element) {
             if (P_TAG.is(element)) {
                 return "\n";
-            }
-            else {
+            } else {
                 return element.getText();
             }
         }
@@ -177,8 +184,7 @@ public class MdVisitor implements DocElementVisitor<MdContext, String> {
         public String startElement(StartHtmlElement element) {
             if (LI_TAG.is(element)) {
                 return "\n- ";
-            }
-            else {
+            } else {
                 return element.getText();
             }
         }
@@ -186,20 +192,29 @@ public class MdVisitor implements DocElementVisitor<MdContext, String> {
         @Override
         public String endElement(EndHtmlElement element) {
             if (LI_TAG.is(element)) {
+                // we want the start of any text trimmed as we're really only expecting whitespace up to the
+                // next li or /ul tag.
+                startSection = true;
                 return "";
-            }
-            else if (UL_TAG.is(element)) {
+            } else if (UL_TAG.is(element)) {
                 htmlHandler = new RootHandler();
                 return "\n";
-            }
-            else {
+            } else {
                 return element.getText();
             }
         }
     }
 
-    public static String removeNewLines(String text) {
-        return text.replaceFirst("^\\s*", "")
-                .replaceAll("\\s+", " ");
+    protected String removeNewLines(String text) {
+        if (startSection) {
+            text = text.replaceFirst("^\\s*", "");
+            startSection = false;
+        }
+        return text.replaceAll("\\s+", " ");
     }
+
+    protected String pruneNewlines(String text) {
+        return text.replaceAll("[\\t ]*\\r?\\n[\\t ]+", "\n");
+    }
+
 }

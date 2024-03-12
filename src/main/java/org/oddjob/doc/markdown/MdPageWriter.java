@@ -106,12 +106,12 @@ public class MdPageWriter {
             this.mdContext = mdContext;
         }
 
-        protected String toMd(List<BeanDocElement> elements, boolean noNewline) {
-            if (elements == null || elements.isEmpty()) {
-                return "";
-            } else {
-                return MdVisitor.visitAll(elements, mdContext, noNewline);
-            }
+        String toSection(List<? extends BeanDocElement> elements) {
+            return MdVisitor.visitAsSection(elements, mdContext);
+        }
+
+        String toLine(List<? extends BeanDocElement> elements) {
+            return MdVisitor.visitAsLine(elements, mdContext);
         }
 
         public void writePageTo(BeanDoc beanDoc, PrintWriter out) {
@@ -119,7 +119,7 @@ public class MdPageWriter {
             out.println("[HOME](" + getIndexFile(beanDoc.getClassName()) + ")");
             out.println("# " + beanDoc.getName());
             out.println();
-            out.println(toMd(beanDoc.getAllText(), false));
+            out.println(toSection(beanDoc.getAllText()));
 
             PropertyDoc[] propertyDocs = beanDoc.getPropertyDocs();
 
@@ -134,7 +134,7 @@ public class MdPageWriter {
                         continue;
                     }
                     out.println("| [" + elem.getPropertyName() + "](#property" + elem.getPropertyName() + ") | "
-                            + toMd(elem.getFirstSentence(), true) + " | ");
+                            + toLine(elem.getFirstSentence()) + " | ");
                 }
                 out.println();
             }
@@ -150,7 +150,7 @@ public class MdPageWriter {
                 int i = 0;
                 for (ExampleDoc elem : exampleDocs) {
                     out.println("| [Example " + ++i + "](#example" + i + ") | " +
-                            toMd(elem.getFirstSentence(), true) + " |" );
+                            toLine(elem.getFirstSentence()) + " |" );
                 }
                 out.println();
             }
@@ -178,7 +178,7 @@ public class MdPageWriter {
                     }
                     out.println("</table>");
                     out.println();
-                    out.println(toMd(elem.getAllText(), false));
+                    out.println(toSection(elem.getAllText()));
                     out.println();
                 }
             }
@@ -190,7 +190,7 @@ public class MdPageWriter {
                 for (ExampleDoc example : exampleDocs) {
                     out.println("#### Example " + ++i + " <a name=\"example" + i + "\"></a>");
                     out.println();
-                    out.println(toMd(example.getAllText(), false));
+                    out.println(toSection(example.getAllText()));
                     out.println();
                 }
             }

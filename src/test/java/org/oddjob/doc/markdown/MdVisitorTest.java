@@ -16,8 +16,14 @@ class MdVisitorTest {
     @Test
     void removeNewLines() {
 
-        assertThat(MdVisitor.removeNewLines("\nStuff\r\n\tMore Stuff\r\nAnd More"),
-                is("Stuff More Stuff And More"));
+        MdContext context = mock(MdContext.class);
+
+        List<BeanDocElement> elements = List.of(
+                StandardElement.of("\nStuff\r\n\tMore Stuff\r\nAnd More\r\n"));
+
+        String result = MdVisitor.visitAsLine(elements, context);
+
+        assertThat(result, is("Stuff More Stuff And More "));
     }
 
     @Test
@@ -30,7 +36,7 @@ class MdVisitorTest {
                         "  The first line\n Another line \r\n\tAnd another.")
         );
 
-        String result = MdVisitor.visitAll(elements, context);
+        String result = MdVisitor.visitAsSection(elements, context);
 
         assertThat(result, is("  The first line\nAnother line\nAnd another."));
     }
@@ -46,7 +52,7 @@ class MdVisitorTest {
                 StandardElement.of(" then some text.")
         );
 
-        String result = MdVisitor.visitAll(elements, context);
+        String result = MdVisitor.visitAsSection(elements, context);
 
         assertThat(result, is("SOME LINK then some text."));
     }
@@ -61,9 +67,26 @@ class MdVisitorTest {
 
         List<BeanDocElement> elements = List.of(standardElement);
 
-        String result = MdVisitor.visitAll(elements, context, true);
+        String result = MdVisitor.visitAsLine(elements, context);
 
         assertThat(result, is("The first line Another line And another."));
+    }
+
+    @Test
+    void whenLfAndTagThenRemoveLfThenReplacedWithSpacesOk() {
+
+        MdContext context = mock(MdContext.class);
+
+        List<BeanDocElement> elements = List.of(
+                StandardElement.of("  The first line "),
+                StartHtmlElement.of("X", "<X>"),
+                StandardElement.of("Enclosed Text"),
+                EndHtmlElement.of("X", "</X>"),
+                StandardElement.of("\n Another line."));
+
+        String result = MdVisitor.visitAsLine(elements, context);
+
+        assertThat(result, is("The first line <X>Enclosed Text</X> Another line."));
     }
 
     @Test
@@ -84,7 +107,7 @@ class MdVisitorTest {
                 StandardElement.of("And more.")
                 );
 
-        String result = MdVisitor.visitAll(elements, context);
+        String result = MdVisitor.visitAsSection(elements, context);
 
         assertThat(result, is("\n\nSome text.\n\n and <b>bold</b> normal.\nAnd more."));
     }
@@ -111,7 +134,7 @@ class MdVisitorTest {
                 StandardElement.of("more.")
         );
 
-        String result = MdVisitor.visitAll(elements, context);
+        String result = MdVisitor.visitAsSection(elements, context);
 
         assertThat(result, is(
                 "\nSome text.\n\n" +

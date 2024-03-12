@@ -3,6 +3,7 @@ package org.oddjob.doc.taglet;
 import com.sun.source.doctree.UnknownInlineTagTree;
 import org.oddjob.doc.doclet.CustomTagNames;
 import org.oddjob.doc.loader.IncludeLoader;
+import org.oddjob.doc.loader.JavaCodeLoader;
 import org.oddjob.doc.loader.PlainTextLoader;
 import org.oddjob.doc.loader.XmlLoader;
 import org.oddjob.doc.util.LoaderProvider;
@@ -24,6 +25,7 @@ public class UnknownInlineLoaderProvider implements LoaderProvider {
 
         loaders.put(CustomTagNames.XML_RESOURCE_TAG_NAME, XmlLoader.fromResource(classLoader));
         loaders.put(CustomTagNames.TEXT_RESOURCE_TAG_NAME, PlainTextLoader.fromResource(classLoader));
+        loaders.put(CustomTagNames.JAVA_RESOURCE_TAG_NAME, JavaCodeLoader.fromResource(classLoader));
     }
 
     @Override

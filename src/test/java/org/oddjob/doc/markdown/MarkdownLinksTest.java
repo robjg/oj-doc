@@ -6,15 +6,15 @@ import org.oddjob.arooa.beandocs.BeanDocArchive;
 import org.oddjob.arooa.beandocs.element.LinkElement;
 import org.oddjob.doc.util.ApiLinkProvider;
 import org.oddjob.doc.util.DocUtil;
-
-import java.util.function.Function;
+import org.oddjob.doc.util.LinkProcessor;
+import org.oddjob.doc.util.LinkProcessorProvider;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class MdContextProviderTest {
+class MarkdownLinksTest {
 
     @Test
     void relativePath() {
@@ -29,12 +29,10 @@ class MdContextProviderTest {
 
         ApiLinkProvider apiLinkProvider = ApiLinkProvider.providerFor("../api");
 
-        Function<String, String> apiLinkFor = apiLinkProvider.apiLinkFor(pathToRoot);
+        LinkProcessorProvider linkProcessorProvider = MarkdownLinks.newProcessorProvider(
+                apiLinkProvider, beanDocArchive);
 
-        Function<String, String> refLinkFor = fileName -> pathToRoot + "/" + fileName;
-
-        MdContext htmlContext = new MdReferenceWriterFactory.MdContextImpl(
-                beanDocArchive, apiLinkFor, refLinkFor);
+        LinkProcessor linkProcessor = linkProcessorProvider.linkProcessorFor(pathToRoot);
 
         LinkElement refElement = new LinkElement();
         refElement.setQualifiedType("org.foo.Job");
@@ -42,10 +40,10 @@ class MdContextProviderTest {
         LinkElement codeElement = new LinkElement();
         codeElement.setQualifiedType("org.bar.Stuff");
 
-        String refLink = htmlContext.processLink(refElement);
+        String refLink = linkProcessor.processLink(refElement);
         assertThat(refLink, is("[SomeJob](../../org/foo/Job.md)"));
 
-        String codeLink = htmlContext.processLink(codeElement);
+        String codeLink = linkProcessor.processLink(codeElement);
         assertThat(codeLink, is("[org.bar.Stuff](../../../api/org/bar/Stuff.html)"));
     }
 
@@ -62,12 +60,10 @@ class MdContextProviderTest {
 
         ApiLinkProvider apiLinkProvider = ApiLinkProvider.providerFor("http://www.foo.org/api");
 
-        Function<String, String> apiLinkFor = apiLinkProvider.apiLinkFor(pathToRoot);
+        LinkProcessorProvider linkProcessorProvider = MarkdownLinks.newProcessorProvider(
+                apiLinkProvider, beanDocArchive);
 
-        Function<String, String> refLinkFor = fileName -> pathToRoot + "/" + fileName;
-
-        MdContext htmlContext = new MdReferenceWriterFactory.MdContextImpl(
-                beanDocArchive, apiLinkFor, refLinkFor);
+        LinkProcessor linkProcessor = linkProcessorProvider.linkProcessorFor(pathToRoot);
 
         LinkElement refElement = new LinkElement();
         refElement.setQualifiedType("org.foo.Job");
@@ -75,10 +71,10 @@ class MdContextProviderTest {
         LinkElement codeElement = new LinkElement();
         codeElement.setQualifiedType("org.bar.Stuff");
 
-        String refLink = htmlContext.processLink(refElement);
+        String refLink = linkProcessor.processLink(refElement);
         assertThat(refLink, is("[SomeJob](../../org/foo/Job.md)"));
 
-        String codeLink = htmlContext.processLink(codeElement);
+        String codeLink = linkProcessor.processLink(codeElement);
         assertThat(codeLink, is("[org.bar.Stuff](http://www.foo.org/api/org/bar/Stuff.html)"));
     }
 }
