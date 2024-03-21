@@ -7,6 +7,7 @@ import org.oddjob.doc.doclet.ReferenceWriterFactory;
 import org.oddjob.doc.util.ApiLinkProvider;
 import org.oddjob.doc.util.LinkProcessor;
 import org.oddjob.doc.util.LinkProcessorProvider;
+import org.oddjob.doc.util.RefFirstLinks;
 
 import java.util.Objects;
 
@@ -63,7 +64,8 @@ public class MdReferenceWriterFactory implements ReferenceWriterFactory {
         private final LinkProcessorProvider linkProcessorProvider;
 
         ContextProviderImpl(ApiLinkProvider apiLinkProvider) {
-            this.linkProcessorProvider = MarkdownLinks.newProcessorProvider(apiLinkProvider, archive);
+            this.linkProcessorProvider = RefFirstLinks.newProcessorProvider(
+                    apiLinkProvider, archive, new MarkdownLinks());
         }
 
         @Override

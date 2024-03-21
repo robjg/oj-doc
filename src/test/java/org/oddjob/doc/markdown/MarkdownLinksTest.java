@@ -4,10 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.oddjob.arooa.beandocs.BeanDoc;
 import org.oddjob.arooa.beandocs.BeanDocArchive;
 import org.oddjob.arooa.beandocs.element.LinkElement;
-import org.oddjob.doc.util.ApiLinkProvider;
-import org.oddjob.doc.util.DocUtil;
-import org.oddjob.doc.util.LinkProcessor;
-import org.oddjob.doc.util.LinkProcessorProvider;
+import org.oddjob.doc.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -29,8 +26,8 @@ class MarkdownLinksTest {
 
         ApiLinkProvider apiLinkProvider = ApiLinkProvider.providerFor("../api");
 
-        LinkProcessorProvider linkProcessorProvider = MarkdownLinks.newProcessorProvider(
-                apiLinkProvider, beanDocArchive);
+        LinkProcessorProvider linkProcessorProvider = RefFirstLinks.newProcessorProvider(
+                apiLinkProvider, beanDocArchive, new MarkdownLinks());
 
         LinkProcessor linkProcessor = linkProcessorProvider.linkProcessorFor(pathToRoot);
 
@@ -60,8 +57,8 @@ class MarkdownLinksTest {
 
         ApiLinkProvider apiLinkProvider = ApiLinkProvider.providerFor("http://www.foo.org/api");
 
-        LinkProcessorProvider linkProcessorProvider = MarkdownLinks.newProcessorProvider(
-                apiLinkProvider, beanDocArchive);
+        LinkProcessorProvider linkProcessorProvider = RefFirstLinks.newProcessorProvider(
+                apiLinkProvider, beanDocArchive, new MarkdownLinks());
 
         LinkProcessor linkProcessor = linkProcessorProvider.linkProcessorFor(pathToRoot);
 
