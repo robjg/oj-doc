@@ -166,7 +166,8 @@ public class ReferenceDoclet implements Doclet {
             writerFactory.setArchive(archiver);
             writerFactory.setDestination(destination);
             writerFactory.setTitle(title);
-            writerFactory.setApiLink(Objects.requireNonNullElse(options.apiUrl, "../api"));
+            writerFactory.setApiLinks(List.of(Objects.requireNonNullElse(options.apiUrl, "../api")));
+            writerFactory.setErrorConsumer(message -> reporter.print(Diagnostic.Kind.WARNING, message));
 
             ReferenceWriter referenceWriter = writerFactory.create();
             referenceWriter.createManual(archiver);

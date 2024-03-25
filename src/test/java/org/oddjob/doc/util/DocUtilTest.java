@@ -29,4 +29,20 @@ class DocUtilTest {
         assertThat(DocUtil.simpleName("Foo"), is("Foo"));
         assertThat(DocUtil.simpleName("aaa.bbb.Foo"), is("Foo"));
     }
+
+    @Test
+    void packageName() {
+
+        assertThat(DocUtil.packageName("Foo"), is(""));
+        assertThat(DocUtil.packageName("aaa.bbb.Foo"), is("aaa.bbb"));
+    }
+
+    @Test
+    void fileName() {
+
+        assertThat(DocUtil.fileNameFor("Foo", "html"), is("Foo.html"));
+        assertThat(DocUtil.fileNameFor("aaa.bbb.Foo", "html"), is("aaa/bbb/Foo.html"));
+    }
+
+
 }

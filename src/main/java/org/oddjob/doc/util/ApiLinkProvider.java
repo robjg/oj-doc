@@ -1,31 +1,18 @@
 package org.oddjob.doc.util;
 
-import java.util.function.Function;
-
 /**
  * Provides something that can provide relative or absolute paths for linking to
  * the API doc that might be local or on a website.
  */
-abstract public class ApiLinkProvider {
+abstract public class ApiLinkProvider implements LinkResolverProvider {
 
-    /**
-     * Provide a function the can take a file name and create a path either
-     * based on the path to the root or not depending on if the provider is local or not.
-     *
-     * @param pathToRoot The path to the API root. May or may not be used.
-     *
-     * @return a function that will create a path to the given file name.
-     */
-    public abstract Function<String, String> apiLinkFor(String pathToRoot);
 
-    public static ApiLinkProvider providerFor(String apiLink) {
+    public static LinkResolverProvider relativeLinkProvider(String apiLink) {
+        return new RelativeApiLink(apiLink);
+    }
 
-        if (apiLink.contains(":")) {
-            return new AbsoluteApiLink(apiLink);
-        }
-        else {
-            return new RelativeApiLink(apiLink);
-        }
+    public static LinkResolverProvider absoluteLinkProvider(String apiLink) {
+        return new AbsoluteApiLink(apiLink);
     }
 
     static class RelativeApiLink extends ApiLinkProvider {
@@ -37,8 +24,12 @@ abstract public class ApiLinkProvider {
         }
 
         @Override
-        public Function<String, String> apiLinkFor(String pathToRoot) {
-            return fileName -> pathToRoot + "/" + relativeLink + "/" + fileName;
+        public LinkResolver apiLinkFor(String pathToRoot) {
+
+            return (qualifiedType, extension) -> {
+                String fileName = DocUtil.fileNameFor(qualifiedType, extension);
+                return pathToRoot + "/" + relativeLink + "/" + fileName;
+            };
         }
     }
 
@@ -51,8 +42,11 @@ abstract public class ApiLinkProvider {
         }
 
         @Override
-        public Function<String, String> apiLinkFor(String pathToRoot) {
-            return fileName -> absoluteLink + "/" + fileName;
+        public LinkResolver apiLinkFor(String pathToRoot) {
+            return (qualifiedType, extension) -> {
+                String fileName = DocUtil.fileNameFor(qualifiedType, extension);
+                return absoluteLink + "/" + fileName;
+            };
         }
     }
 

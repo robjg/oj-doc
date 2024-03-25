@@ -60,6 +60,11 @@ public class DocUtil {
         return pos < 0 ? qualifiedName : qualifiedName.substring(pos + 1);
     }
 
+    public static String packageName(String qualifiedName) {
+        int pos = qualifiedName.lastIndexOf('.');
+        return pos < 0 ? "" : qualifiedName.substring(0, pos);
+    }
+
     /**
      * Resolve a reference tree from a link.
      * Most of this comes from {@code jdk.javadoc.internal.doclets.toolkit.CommentHelper}
@@ -112,5 +117,9 @@ public class DocUtil {
     public static String unknownTagContent(UnknownInlineTagTree inlineTagTree) {
 
         return inlineTagTree.getContent().get(0).toString();
+    }
+
+    public static String fileNameFor(String qualifiedType, String extension) {
+        return qualifiedType.replace('.', '/') + "." + extension;
     }
 }

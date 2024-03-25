@@ -27,10 +27,10 @@ public class MdReferenceWriter implements ReferenceWriter {
 
     private final MdPageWriter pageWriter;
 
-    public MdReferenceWriter(String directory, String title, MdContextProvider contextProvider) {
+    public MdReferenceWriter(Path directory, String title, MdContextProvider contextProvider) {
         this.pageWriter = new MdPageWriter(
                 Objects.requireNonNullElse(title, "Oddjob Reference"),
-                Path.of(directory),
+                directory,
                 contextProvider);
     }
 

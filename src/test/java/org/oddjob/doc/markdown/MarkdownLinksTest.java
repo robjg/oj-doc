@@ -24,7 +24,7 @@ class MarkdownLinksTest {
 
         String pathToRoot = DocUtil.pathToRoot("org.bar.A");
 
-        ApiLinkProvider apiLinkProvider = ApiLinkProvider.providerFor("../api");
+        LinkResolverProvider apiLinkProvider = ApiLinkProvider.relativeLinkProvider("../api");
 
         LinkProcessorProvider linkProcessorProvider = RefFirstLinks.newProcessorProvider(
                 apiLinkProvider, beanDocArchive, new MarkdownLinks());
@@ -55,7 +55,7 @@ class MarkdownLinksTest {
 
         String pathToRoot = DocUtil.pathToRoot("org.bar.A");
 
-        ApiLinkProvider apiLinkProvider = ApiLinkProvider.providerFor("http://www.foo.org/api");
+        LinkResolverProvider apiLinkProvider = ApiLinkProvider.absoluteLinkProvider("http://www.foo.org/api");
 
         LinkProcessorProvider linkProcessorProvider = RefFirstLinks.newProcessorProvider(
                 apiLinkProvider, beanDocArchive, new MarkdownLinks());

@@ -1,60 +1,31 @@
 package org.oddjob.doc.markdown;
 
-import org.oddjob.arooa.beandocs.BeanDocArchive;
 import org.oddjob.arooa.beandocs.element.LinkElement;
 import org.oddjob.doc.doclet.ReferenceWriter;
 import org.oddjob.doc.doclet.ReferenceWriterFactory;
-import org.oddjob.doc.util.ApiLinkProvider;
-import org.oddjob.doc.util.LinkProcessor;
-import org.oddjob.doc.util.LinkProcessorProvider;
-import org.oddjob.doc.util.RefFirstLinks;
+import org.oddjob.doc.util.*;
 
+import java.nio.file.Path;
 import java.util.Objects;
 
 /**
  * Creates an {@link ReferenceWriter} for Markdown.
  */
-public class MdReferenceWriterFactory implements ReferenceWriterFactory {
-
-    private BeanDocArchive archive;
-
-    private String destination;
-
-    private String title;
-
-    private String apiLink;
-
-
-    @Override
-    public void setArchive(BeanDocArchive archive) {
-        this.archive = archive;
-    }
-
-    @Override
-    public void setDestination(String destination) {
-        this.destination = destination;
-    }
-
-    @Override
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    @Override
-    public void setApiLink(String apiLink) {
-        this.apiLink = apiLink;
-    }
+public class MdReferenceWriterFactory extends ReferenceWriterFactory {
 
     @Override
     public ReferenceWriter create() {
 
-        ApiLinkProvider linkProvider = ApiLinkProvider.providerFor(apiLink);
+        Path out = Path.of(Objects.requireNonNull(getDestination(), "No destination"));
+
+        LinkResolverProvider linkProvider = ExternLinkProvider.withErrorReporter(getErrorConsumer())
+                .addLinks(getApiLinks(), out);
 
         MdContextProvider contextProvider = new ContextProviderImpl(linkProvider);
 
         return new MdReferenceWriter(
-                Objects.requireNonNull(destination, "No destination"),
-                title,
+                out,
+                getTitle(),
                 contextProvider);
     }
 
@@ -63,9 +34,9 @@ public class MdReferenceWriterFactory implements ReferenceWriterFactory {
 
         private final LinkProcessorProvider linkProcessorProvider;
 
-        ContextProviderImpl(ApiLinkProvider apiLinkProvider) {
+        ContextProviderImpl(LinkResolverProvider apiLinkProvider) {
             this.linkProcessorProvider = RefFirstLinks.newProcessorProvider(
-                    apiLinkProvider, archive, new MarkdownLinks());
+                    apiLinkProvider, getArchive(), new MarkdownLinks());
         }
 
         @Override

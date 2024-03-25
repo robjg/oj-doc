@@ -5,85 +5,63 @@ import org.oddjob.arooa.beandocs.BeanDocArchive;
 import org.oddjob.arooa.beandocs.element.LinkElement;
 import org.oddjob.doc.doclet.ReferenceWriter;
 import org.oddjob.doc.doclet.ReferenceWriterFactory;
-import org.oddjob.doc.util.ApiLinkProvider;
+import org.oddjob.doc.util.ExternLinkProvider;
+import org.oddjob.doc.util.LinkResolver;
+import org.oddjob.doc.util.LinkResolverProvider;
 
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.function.Function;
 
 /**
  * Creates an {@link ReferenceWriter} for HTML.
  */
-public class HtmlReferenceWriterFactory implements ReferenceWriterFactory {
-
-    private BeanDocArchive archive;
-
-    private String destination;
-
-    private String title;
-
-    private String apiLink;
-
-    @Override
-    public void setArchive(BeanDocArchive archive) {
-        this.archive = archive;
-    }
-
-    @Override
-    public void setDestination(String destination) {
-        this.destination = destination;
-    }
-
-    @Override
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    @Override
-    public void setApiLink(String apiLink) {
-        this.apiLink = apiLink;
-    }
+public class HtmlReferenceWriterFactory extends ReferenceWriterFactory {
 
     @Override
     public ReferenceWriter create() {
 
-        ApiLinkProvider linkProvider = ApiLinkProvider.providerFor(apiLink);
+        Path out = Path.of(Objects.requireNonNull(getDestination(), "No destination"));
+
+        LinkResolverProvider linkProvider = ExternLinkProvider.withErrorReporter(getErrorConsumer())
+                .addLinks(getApiLinks(), out);
 
         HtmlContextProvider contextProvider = new ContextProviderImpl(linkProvider);
 
         return new HtmlReferenceWriter(
-                Objects.requireNonNull(destination, "No destination"),
-                title,
+                out,
+                getTitle(),
                 contextProvider);
     }
 
     class ContextProviderImpl implements HtmlContextProvider {
 
-        private final ApiLinkProvider apiLinkProvider;
+        private final LinkResolverProvider apiLinkProvider;
 
-        ContextProviderImpl(ApiLinkProvider apiLinkProvider) {
+        ContextProviderImpl(LinkResolverProvider apiLinkProvider) {
             this.apiLinkProvider = apiLinkProvider;
         }
 
         @Override
         public HtmlContext contextFor(String pathToRoot) {
 
-            Function<String, String> apiLinkFor = apiLinkProvider.apiLinkFor(pathToRoot);
+            LinkResolver apiLinkFor = apiLinkProvider.apiLinkFor(pathToRoot);
 
             Function<String, String> refLinkFor = fileName -> pathToRoot + "/" + fileName;
 
-            return new HtmlContextImpl(archive, apiLinkFor, refLinkFor);
+            return new HtmlContextImpl(getArchive(), apiLinkFor, refLinkFor);
         }
     }
     static class HtmlContextImpl implements HtmlContext {
 
         private final BeanDocArchive archive;
 
-        private final Function<String, String> apiLinkFor;
+        private final LinkResolver apiLinkFor;
 
         private final Function<String, String> refLinkFor;
 
         HtmlContextImpl(BeanDocArchive archive,
-                        Function<String, String> apiLinkFor,
+                        LinkResolver apiLinkFor,
                         Function<String, String> refLinkFor) {
             this.archive = archive;
             this.apiLinkFor = apiLinkFor;
@@ -108,7 +86,7 @@ public class HtmlReferenceWriterFactory implements ReferenceWriterFactory {
             BeanDoc beanDoc = archive.docFor(qualifiedType);
 
             if (beanDoc == null) {
-                return "<code><a href='" + apiLinkFor.apply(fileName)  + "'>"
+                return "<code><a href='" + apiLinkFor.resolve(qualifiedType, "html")  + "'>"
                         + qualifiedType + "</a></code>";
             }
             else {

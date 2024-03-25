@@ -26,10 +26,10 @@ public class HtmlReferenceWriter implements ReferenceWriter {
     public static final String COPYWRITE = "(c) R Gordon Ltd 2005 - Present";
 
     private final HtmlPageWriter pageWriter;
-    public HtmlReferenceWriter(String directory, String title, HtmlContextProvider contextProvider) {
+    public HtmlReferenceWriter(Path directory, String title, HtmlContextProvider contextProvider) {
         this.pageWriter = new HtmlPageWriter(
                 Objects.requireNonNullElse(title, "Oddjob Reference"),
-                Path.of(directory),
+                directory,
                 contextProvider);
     }
 

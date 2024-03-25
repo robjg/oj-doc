@@ -13,13 +13,13 @@ import java.util.function.Function;
  */
 public class RefFirstLinks implements LinkProcessorProvider {
 
-    private final ApiLinkProvider apiLinkProvider;
+    private final LinkResolverProvider apiLinkProvider;
 
     private final BeanDocArchive archive;
 
     private final LinkFormatter linkFormatter;
 
-    RefFirstLinks(ApiLinkProvider apiLinkProvider,
+    RefFirstLinks(LinkResolverProvider apiLinkProvider,
                   BeanDocArchive archive,
                   LinkFormatter linkFormatter) {
         this.apiLinkProvider = apiLinkProvider;
@@ -27,7 +27,7 @@ public class RefFirstLinks implements LinkProcessorProvider {
         this.linkFormatter = linkFormatter;
     }
 
-    public static LinkProcessorProvider newProcessorProvider(ApiLinkProvider apiLinkProvider,
+    public static LinkProcessorProvider newProcessorProvider(LinkResolverProvider apiLinkProvider,
                                                              BeanDocArchive archive,
                                                              LinkFormatter linkFormatter) {
         return new RefFirstLinks(apiLinkProvider, archive, linkFormatter);
@@ -36,7 +36,7 @@ public class RefFirstLinks implements LinkProcessorProvider {
     @Override
     public LinkProcessor linkProcessorFor(String pathToRoot) {
 
-        Function<String, String> apiLinkFor = apiLinkProvider.apiLinkFor(pathToRoot);
+        LinkResolver apiLinkFor = apiLinkProvider.apiLinkFor(pathToRoot);
 
         Function<String, String> refLinkFor = fileName -> pathToRoot + "/" + fileName;
 
@@ -47,13 +47,16 @@ public class RefFirstLinks implements LinkProcessorProvider {
 
         private final BeanDocArchive archive;
 
-        private final Function<String, String> apiLinkFor;
+        private final LinkResolver apiLinkFor;
 
         private final Function<String, String> refLinkFor;
 
         private final LinkFormatter linkFormatter;
 
-        MdLinkProcessor(BeanDocArchive archive, Function<String, String> apiLinkFor, Function<String, String> refLinkFor, LinkFormatter linkFormatter) {
+        MdLinkProcessor(BeanDocArchive archive,
+                        LinkResolver apiLinkFor,
+                        Function<String, String> refLinkFor,
+                        LinkFormatter linkFormatter) {
             this.archive = archive;
             this.apiLinkFor = apiLinkFor;
             this.refLinkFor = refLinkFor;
@@ -69,7 +72,6 @@ public class RefFirstLinks implements LinkProcessorProvider {
                 return linkFormatter.noLinkFor(linkElement.getSignature(), linkElement.getLabel());
             }
 
-            String htmlFileName = qualifiedType.replace('.', '/') + ".html";
             String mdFileName = qualifiedType.replace('.', '/') + ".md";
 
             return Optional.ofNullable(archive.docFor(qualifiedType))
@@ -77,7 +79,7 @@ public class RefFirstLinks implements LinkProcessorProvider {
                     .map(componentName -> linkFormatter.linkFor(
                             refLinkFor.apply(mdFileName), componentName))
                     .orElseGet(() ->  linkFormatter.linkFor(
-                            apiLinkFor.apply(htmlFileName), qualifiedType));
+                            apiLinkFor.resolve(qualifiedType, "html"), qualifiedType));
         }
     }
 }

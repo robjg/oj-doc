@@ -6,6 +6,8 @@ import org.oddjob.arooa.beandocs.BeanDocArchive;
 import org.oddjob.arooa.beandocs.element.LinkElement;
 import org.oddjob.doc.util.ApiLinkProvider;
 import org.oddjob.doc.util.DocUtil;
+import org.oddjob.doc.util.LinkResolver;
+import org.oddjob.doc.util.LinkResolverProvider;
 
 import java.util.function.Function;
 
@@ -27,9 +29,9 @@ class HtmlContextProviderTest {
 
         String pathToRoot = DocUtil.pathToRoot("org.bar.A");
 
-        ApiLinkProvider apiLinkProvider = ApiLinkProvider.providerFor("../api");
+        LinkResolverProvider apiLinkProvider = ApiLinkProvider.relativeLinkProvider("../api");
 
-        Function<String, String> apiLinkFor = apiLinkProvider.apiLinkFor(pathToRoot);
+        LinkResolver apiLinkFor = apiLinkProvider.apiLinkFor(pathToRoot);
 
         Function<String, String> refLinkFor = fileName -> pathToRoot + "/" + fileName;
 
