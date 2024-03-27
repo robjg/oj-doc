@@ -5,14 +5,14 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-class ApiLinkProviderTest {
+class LinkPathsTest {
 
     @Test
     void whenRelativeLinkThenOk() {
 
-        LinkResolverProvider linkProvider = ApiLinkProvider.relativeLinkProvider("../api");
+        LinkPaths linkProvider = LinkPaths.relativeLinkProvider("../api");
 
-        LinkResolver apiFunc = linkProvider.apiLinkFor("../..");
+        LinkPaths.Func apiFunc = linkProvider.apiLinkFor("../..");
 
         String link = apiFunc.resolve("org.foo.Stuff", "foo");
 
@@ -22,9 +22,9 @@ class ApiLinkProviderTest {
     @Test
     void whenUrlLinkThenOk() {
 
-        LinkResolverProvider linkProvider = ApiLinkProvider.absoluteLinkProvider("http://www.foo.org/api");
+        LinkPaths linkProvider = LinkPaths.absoluteLinkProvider("http://www.foo.org/api");
 
-        LinkResolver apiFunc = linkProvider.apiLinkFor("../..");
+        LinkPaths.Func apiFunc = linkProvider.apiLinkFor("../..");
 
         String link = apiFunc.resolve("org.foo.Stuff", "foo");
 

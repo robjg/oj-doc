@@ -14,6 +14,7 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
 /**
@@ -55,8 +56,8 @@ public class Archiver implements BeanDocArchive {
     }
 
 	@Override
-	public BeanDoc docFor(String fqn) {
-		return jats.docFor(fqn);
+	public Optional<BeanDoc> docFor(String fqn) {
+		return Optional.ofNullable(jats.docFor(fqn));
 	}
 
 	/**

@@ -1,7 +1,5 @@
 package org.oddjob.doc.util;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.Test;
 
@@ -17,7 +15,7 @@ import static org.hamcrest.Matchers.is;
 class ExternLinkProviderTest {
 
     @Test
-    void relativeLinkResolvedOk() throws IOException {
+    void relativeLinkResolvedOk() {
 
         Path path = Paths.get("./src/test/resources/ref");
         System.out.println(path.toUri());
@@ -27,7 +25,8 @@ class ExternLinkProviderTest {
 
         LinkResolver linkResolver = provider.apiLinkFor(".");
 
-        String link = linkResolver.resolve("org.foo.stuff.SomeFoo", "html");
+        String link = linkResolver.resolve("org.foo.stuff.SomeFoo", "html")
+                .orElseThrow();
 
         assertThat(link, is("./../api/org/foo/stuff/SomeFoo.html"));
     }
@@ -39,15 +38,13 @@ class ExternLinkProviderTest {
 
         String htmlResponse = "org.bar\norg.bar.stuff\n";
 
-        server.createContext("/bardoc", new HttpHandler() {
-            @Override
-            public void handle(HttpExchange httpExchange) throws IOException {
-                httpExchange.sendResponseHeaders(200, htmlResponse.length());
-                try (OutputStream outputStream = httpExchange.getResponseBody()) {
-                    outputStream.write(htmlResponse.getBytes());
-                }
-            }
-        });
+        server.createContext("/bardoc",
+                httpExchange -> {
+                    httpExchange.sendResponseHeaders(200, htmlResponse.length());
+                    try (OutputStream outputStream = httpExchange.getResponseBody()) {
+                        outputStream.write(htmlResponse.getBytes());
+                    }
+                });
         server.start();
 
         ExternLinkProvider linkProvider = ExternLinkProvider.throwingException();
@@ -58,7 +55,8 @@ class ExternLinkProviderTest {
         server.stop(0);
 
         LinkResolver linkResolver = linkProvider.apiLinkFor("ignored");
-        String link = linkResolver.resolve("org.bar.SomeBar", "html");
+        String link = linkResolver.resolve("org.bar.SomeBar", "html")
+                .orElseThrow();
 
         assertThat(link, is(url + "/org/bar/SomeBar.html"));
     }

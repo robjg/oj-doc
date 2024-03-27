@@ -7,11 +7,16 @@ public class MarkdownLinks implements LinkFormatter {
     @Override
     public String noLinkFor(String signature, String label) {
 
-        String link = signature;
+        StringBuilder linkBuilder = new StringBuilder();
+        linkBuilder.append('`');
+
         if (label != null) {
-            link += " " + label;
+            linkBuilder.append(label).append(' ');
         }
-        return "<code>" + link + "</code>";
+
+        return linkBuilder.append(signature)
+                .append('`')
+                .toString();
     }
 
     @Override

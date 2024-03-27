@@ -18,12 +18,12 @@ import java.util.stream.Collectors;
  * write our own.
  * <p>
  * Given a URL this will check the package-list or element-list and accumulate a
- * directory of packages to {@link ApiLinkProvider}.
+ * directory of packages to {@link LinkPaths}.
  * </p>
  */
 public class ExternLinkProvider implements LinkResolverProvider {
 
-    private final List<LinkResolverProvider> linkProviders = new LinkedList<>();
+    private final List<LinkPaths> linkProviders = new LinkedList<>();
 
     private final Map<String, Integer> packageLinkProviders = new HashMap<>();
 
@@ -46,11 +46,11 @@ public class ExternLinkProvider implements LinkResolverProvider {
     @Override
     public LinkResolver apiLinkFor(String pathToRoot) {
 
-        List<LinkResolver> linkResolvers = linkProviders.stream()
+        List<LinkPaths.Func> linkResolvers = linkProviders.stream()
                 .map(linkProvider -> linkProvider.apiLinkFor(pathToRoot))
                 .collect(Collectors.toList());
 
-        Map<String, LinkResolver> packageResolvers =
+        Map<String, LinkPaths.Func> packageResolvers =
                 packageLinkProviders.entrySet().stream()
                         .collect(Collectors.toMap(Map.Entry::getKey, e -> linkResolvers.get(e.getValue())));
 
@@ -90,7 +90,7 @@ public class ExternLinkProvider implements LinkResolverProvider {
         }
 
         packageLinkProviders.putAll(packages);
-        linkProviders.add(ApiLinkProvider.absoluteLinkProvider(url));
+        linkProviders.add(LinkPaths.absoluteLinkProvider(url));
     }
 
     public void addRelativeLink(String relativePath, Path relativeTo) {
@@ -112,7 +112,7 @@ public class ExternLinkProvider implements LinkResolverProvider {
         }
 
         packageLinkProviders.putAll(packages);
-        linkProviders.add(ApiLinkProvider.relativeLinkProvider(relativePath));
+        linkProviders.add(LinkPaths.relativeLinkProvider(relativePath));
     }
 
     protected Map<String, Integer> loadUri(URI uri, Integer index) throws IOException {
@@ -126,18 +126,17 @@ public class ExternLinkProvider implements LinkResolverProvider {
 
     static class Processor implements LinkResolver {
 
-        private final Map<String, LinkResolver> packageResolvers;
+        private final Map<String, LinkPaths.Func> packageResolvers;
 
-        Processor(Map<String, LinkResolver> packageResolvers) {
+        Processor(Map<String, LinkPaths.Func> packageResolvers) {
             this.packageResolvers = packageResolvers;
         }
 
         @Override
-        public String resolve(String qualifiedName, String extension) {
+        public Optional<String> resolve(String qualifiedName, String extension) {
 
             return Optional.ofNullable(packageResolvers.get(DocUtil.packageName(qualifiedName)))
-                    .map(linkResolver -> linkResolver.resolve(qualifiedName, extension))
-                    .orElse(null);
+                    .map(linkResolver -> linkResolver.resolve(qualifiedName, extension));
         }
     }
 }

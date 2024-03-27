@@ -4,11 +4,11 @@ import org.junit.jupiter.api.Test;
 import org.oddjob.arooa.beandocs.BeanDoc;
 import org.oddjob.arooa.beandocs.BeanDocArchive;
 import org.oddjob.arooa.beandocs.element.LinkElement;
-import org.oddjob.doc.util.ApiLinkProvider;
 import org.oddjob.doc.util.DocUtil;
+import org.oddjob.doc.util.LinkPaths;
 import org.oddjob.doc.util.LinkResolver;
-import org.oddjob.doc.util.LinkResolverProvider;
 
+import java.util.Optional;
 import java.util.function.Function;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -25,13 +25,14 @@ class HtmlContextProviderTest {
         when(doc.getName()).thenReturn("SomeJob");
 
         BeanDocArchive beanDocArchive = mock(BeanDocArchive.class);
-        when(beanDocArchive.docFor("org.foo.Job")).thenReturn(doc);
+        when(beanDocArchive.docFor("org.foo.Job")).thenReturn(Optional.of(doc));
 
         String pathToRoot = DocUtil.pathToRoot("org.bar.A");
 
-        LinkResolverProvider apiLinkProvider = ApiLinkProvider.relativeLinkProvider("../api");
+        LinkPaths apiLinkProvider = LinkPaths.relativeLinkProvider("../api");
+        LinkPaths.Func func = apiLinkProvider.apiLinkFor(pathToRoot);
 
-        LinkResolver apiLinkFor = apiLinkProvider.apiLinkFor(pathToRoot);
+        LinkResolver apiLinkFor = (link, extension) -> Optional.of(func.resolve(link, extension));
 
         Function<String, String> refLinkFor = fileName -> pathToRoot + "/" + fileName;
 

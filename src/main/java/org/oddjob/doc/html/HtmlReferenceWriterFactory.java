@@ -1,6 +1,5 @@
 package org.oddjob.doc.html;
 
-import org.oddjob.arooa.beandocs.BeanDoc;
 import org.oddjob.arooa.beandocs.BeanDocArchive;
 import org.oddjob.arooa.beandocs.element.LinkElement;
 import org.oddjob.doc.doclet.ReferenceWriter;
@@ -83,17 +82,14 @@ public class HtmlReferenceWriterFactory extends ReferenceWriterFactory {
 
             String fileName = qualifiedType.replace('.', '/') +  ".html";
 
-            BeanDoc beanDoc = archive.docFor(qualifiedType);
-
-            if (beanDoc == null) {
-                return "<code><a href='" + apiLinkFor.resolve(qualifiedType, "html")  + "'>"
-                        + qualifiedType + "</a></code>";
-            }
-            else {
-                String componentName = beanDoc.getName();
-                return "<a href='" + refLinkFor.apply(fileName) + "'>"
-                        + componentName + "</a>";
-            }
+            return archive.docFor(qualifiedType)
+                    .map(beanDoc -> (
+                            "<a href='" + refLinkFor.apply(fileName) + "'>"
+                                  + beanDoc.getName() + "</a>"))
+                    .or(() -> apiLinkFor.resolve(qualifiedType, "html")
+                            .map(link -> "<code><a href='" + link  + "'>"
+                                + qualifiedType + "</a></code>"))
+                    .orElseGet(() -> "<code>" + qualifiedType + "</code>");
         }
 
     }

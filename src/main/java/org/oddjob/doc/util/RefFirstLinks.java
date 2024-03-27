@@ -4,12 +4,11 @@ import org.oddjob.arooa.beandocs.BeanDoc;
 import org.oddjob.arooa.beandocs.BeanDocArchive;
 import org.oddjob.arooa.beandocs.element.LinkElement;
 
-import java.util.Optional;
 import java.util.function.Function;
 
 /**
  * Link Processor that checks an Archive first to see if a link is for a Reference Page
- * otherwise it defers to an {@link ApiLinkProvider}
+ * otherwise it defers to an {@link LinkPaths}
  */
 public class RefFirstLinks implements LinkProcessorProvider {
 
@@ -40,10 +39,10 @@ public class RefFirstLinks implements LinkProcessorProvider {
 
         Function<String, String> refLinkFor = fileName -> pathToRoot + "/" + fileName;
 
-        return new MdLinkProcessor(archive, apiLinkFor, refLinkFor, linkFormatter);
+        return new ProcessorImpl(archive, apiLinkFor, refLinkFor, linkFormatter);
     }
 
-    static class MdLinkProcessor implements LinkProcessor {
+    static class ProcessorImpl implements LinkProcessor {
 
         private final BeanDocArchive archive;
 
@@ -53,10 +52,10 @@ public class RefFirstLinks implements LinkProcessorProvider {
 
         private final LinkFormatter linkFormatter;
 
-        MdLinkProcessor(BeanDocArchive archive,
-                        LinkResolver apiLinkFor,
-                        Function<String, String> refLinkFor,
-                        LinkFormatter linkFormatter) {
+        ProcessorImpl(BeanDocArchive archive,
+                      LinkResolver apiLinkFor,
+                      Function<String, String> refLinkFor,
+                      LinkFormatter linkFormatter) {
             this.archive = archive;
             this.apiLinkFor = apiLinkFor;
             this.refLinkFor = refLinkFor;
@@ -74,12 +73,13 @@ public class RefFirstLinks implements LinkProcessorProvider {
 
             String mdFileName = qualifiedType.replace('.', '/') + ".md";
 
-            return Optional.ofNullable(archive.docFor(qualifiedType))
+            return archive.docFor(qualifiedType)
                     .map(BeanDoc::getName)
                     .map(componentName -> linkFormatter.linkFor(
                             refLinkFor.apply(mdFileName), componentName))
-                    .orElseGet(() ->  linkFormatter.linkFor(
-                            apiLinkFor.resolve(qualifiedType, "html"), qualifiedType));
+                    .or(() -> apiLinkFor.resolve(qualifiedType, "html")
+                                    .map(link -> linkFormatter.linkFor(link, qualifiedType)))
+                    .orElseGet(() -> linkFormatter.noLinkFor(qualifiedType, null));
         }
     }
 }
