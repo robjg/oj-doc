@@ -4,9 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.oddjob.arooa.beandocs.BeanDoc;
 import org.oddjob.arooa.beandocs.BeanDocArchive;
 import org.oddjob.arooa.beandocs.element.LinkElement;
-import org.oddjob.doc.util.DocUtil;
-import org.oddjob.doc.util.LinkPaths;
-import org.oddjob.doc.util.LinkResolver;
+import org.oddjob.doc.util.*;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -30,14 +28,21 @@ class HtmlContextProviderTest {
         String pathToRoot = DocUtil.pathToRoot("org.bar.A");
 
         LinkPaths apiLinkProvider = LinkPaths.relativeLinkProvider("../api");
-        LinkPaths.Func func = apiLinkProvider.apiLinkFor(pathToRoot);
 
-        LinkResolver apiLinkFor = (link, extension) -> Optional.of(func.resolve(link, extension));
+        LinkResolverProvider linkResolverProvider = ptr -> {
+
+            LinkPaths.Func func = apiLinkProvider.apiLinkFor(pathToRoot);
+
+            return (link, extension) -> Optional.of(func.resolve(link, extension));
+        };
 
         Function<String, String> refLinkFor = fileName -> pathToRoot + "/" + fileName;
 
+        LinkProcessorProvider linkProcessorProvider = RefFirstLinks.newProcessorProvider(
+                linkResolverProvider, beanDocArchive, new HtmlLinks(), "html");
+
         HtmlContext htmlContext = new HtmlReferenceWriterFactory.HtmlContextImpl(
-                beanDocArchive, apiLinkFor, refLinkFor);
+                linkProcessorProvider.linkProcessorFor(pathToRoot));
 
         LinkElement refElement = new LinkElement();
         refElement.setQualifiedType("org.foo.Job");
@@ -46,7 +51,7 @@ class HtmlContextProviderTest {
         codeElement.setQualifiedType("org.bar.Stuff");
 
         String refLink = htmlContext.hyperlinkFor(refElement);
-        assertThat(refLink, is("<a href='../../org/foo/Job.html'>SomeJob</a>"));
+        assertThat(refLink, is("<code><a href='../../org/foo/Job.html'>SomeJob</a></code>"));
 
         String codeLink = htmlContext.hyperlinkFor(codeElement);
         assertThat(codeLink, is("<code><a href='../../../api/org/bar/Stuff.html'>org.bar.Stuff</a></code>"));

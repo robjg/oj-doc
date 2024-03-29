@@ -8,7 +8,7 @@ public interface LinkFormatter {
     /**
      * Used when the link can't be found so return preformatted text of the link.
      *
-     * @param signature The signature that couldn't be found.
+     * @param signature The signature that couldn't be found. Never null.
      * @param label The label if any. Probably null.
      *
      * @return The preformatted text.
@@ -18,7 +18,7 @@ public interface LinkFormatter {
     /**
      * Format a link from a URL.
      *
-     * @param url The url. Not expected to be null.
+     * @param url The url. Never null.
      * @param label The label. Not normally null, but could be.
      *
      * @return The formatted link.

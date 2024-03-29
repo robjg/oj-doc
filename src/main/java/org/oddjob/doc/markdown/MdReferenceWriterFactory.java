@@ -13,6 +13,8 @@ import java.util.Objects;
  */
 public class MdReferenceWriterFactory extends ReferenceWriterFactory {
 
+    public static final String REFERENCE_EXTENSION = "md";
+
     @Override
     public ReferenceWriter create() {
 
@@ -36,7 +38,8 @@ public class MdReferenceWriterFactory extends ReferenceWriterFactory {
 
         ContextProviderImpl(LinkResolverProvider apiLinkProvider) {
             this.linkProcessorProvider = RefFirstLinks.newProcessorProvider(
-                    apiLinkProvider, getArchive(), new MarkdownLinks());
+                    apiLinkProvider, getArchive(),
+                    new MarkdownLinks(), REFERENCE_EXTENSION);
         }
 
         @Override

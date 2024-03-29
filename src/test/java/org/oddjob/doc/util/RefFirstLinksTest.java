@@ -48,7 +48,7 @@ class RefFirstLinksTest {
                 .thenAnswer(invocation -> "NO LINK: " + Arrays.toString(invocation.getArguments()));
 
         LinkProcessorProvider linkProcessorProvider = RefFirstLinks.newProcessorProvider(
-                linkResolverProvider, beanDocArchive, linkFormatter);
+                linkResolverProvider, beanDocArchive, linkFormatter, "xyz");
 
         LinkProcessor linkProcessor = linkProcessorProvider.linkProcessorFor(pathToRoot);
 
@@ -65,7 +65,7 @@ class RefFirstLinksTest {
 
         String refLink = linkProcessor.processLink(refElement);
 
-        assertThat(refLink, is("LINK: [../../org/foo/Job.md, SomeJob]"));
+        assertThat(refLink, is("LINK: [../../org/foo/Job.xyz, SomeJob]"));
 
         String codeLink = linkProcessor.processLink(codeElement);
         assertThat(codeLink, is("LINK: [../../../api/org/bar/Stuff.html, org.bar.Stuff]"));
