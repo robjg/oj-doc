@@ -27,7 +27,7 @@ class HtmlContextProviderTest {
 
         String pathToRoot = DocUtil.pathToRoot("org.bar.A");
 
-        LinkPaths apiLinkProvider = LinkPaths.relativeLinkProvider("../api");
+        LinkPaths apiLinkProvider = LinkPaths.relativeLinkProvider("../api", "");
 
         LinkResolverProvider linkResolverProvider = ptr -> {
 

@@ -7,7 +7,10 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -23,9 +26,9 @@ import java.util.stream.Collectors;
  */
 public class ExternLinkProvider implements LinkResolverProvider {
 
-    private final List<LinkPaths> linkProviders = new LinkedList<>();
+    static final String MODULE_START = "module:";
 
-    private final Map<String, Integer> packageLinkProviders = new HashMap<>();
+    private final Map<String, LinkPaths> packageLinkProviders = new HashMap<>();
 
     private final Consumer<? super String> errorReporter;
 
@@ -46,13 +49,9 @@ public class ExternLinkProvider implements LinkResolverProvider {
     @Override
     public LinkResolver apiLinkFor(String pathToRoot) {
 
-        List<LinkPaths.Func> linkResolvers = linkProviders.stream()
-                .map(linkProvider -> linkProvider.apiLinkFor(pathToRoot))
-                .collect(Collectors.toList());
-
         Map<String, LinkPaths.Func> packageResolvers =
                 packageLinkProviders.entrySet().stream()
-                        .collect(Collectors.toMap(Map.Entry::getKey, e -> linkResolvers.get(e.getValue())));
+                        .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().apiLinkFor(pathToRoot)));
 
         return new Processor(packageResolvers);
     }
@@ -76,13 +75,14 @@ public class ExternLinkProvider implements LinkResolverProvider {
 
     public void addLink(String url) {
 
-        int index = linkProviders.size();
-        Map<String, Integer> packages;
+        LinkPaths.Provider pathProvider = module -> LinkPaths.absoluteLinkProvider(url, module);
+
+        Map<String, LinkPaths> packages;
         try {
             try {
-                packages = loadUri(URI.create(url + "/package-list"), index);
+                packages = loadUri(URI.create(url + "/package-list"), pathProvider);
             } catch (FileNotFoundException e) {
-                packages = loadUri(URI.create(url + "/element-list"), index);
+                packages = loadUri(URI.create(url + "/element-list"), pathProvider);
             }
         } catch (IOException e2) {
             errorReporter.accept("Failed to find package/element list at " + url);
@@ -90,20 +90,20 @@ public class ExternLinkProvider implements LinkResolverProvider {
         }
 
         packageLinkProviders.putAll(packages);
-        linkProviders.add(LinkPaths.absoluteLinkProvider(url));
     }
 
     public void addRelativeLink(String relativePath, Path relativeTo) {
 
-        int index = linkProviders.size();
-        Map<String, Integer> packages;
+        LinkPaths.Provider pathProvider = module -> LinkPaths.relativeLinkProvider(relativePath, module);
+
+        Map<String, LinkPaths> packages;
         try {
             Path apiPath = relativeTo.resolve(relativePath);
 
             try {
-                packages = loadUri(apiPath.resolve("element-list").toUri(), index);
+                packages = loadUri(apiPath.resolve("element-list").toUri(), pathProvider);
             } catch (FileNotFoundException e) {
-                packages = loadUri(apiPath.resolve("package-list").toUri(), index);
+                packages = loadUri(apiPath.resolve("package-list").toUri(), pathProvider);
             }
         } catch (IOException e2) {
             errorReporter.accept("Failed to find package/element list at " +
@@ -112,16 +112,25 @@ public class ExternLinkProvider implements LinkResolverProvider {
         }
 
         packageLinkProviders.putAll(packages);
-        linkProviders.add(LinkPaths.relativeLinkProvider(relativePath));
     }
 
-    protected Map<String, Integer> loadUri(URI uri, Integer index) throws IOException {
+    protected Map<String, LinkPaths> loadUri(URI uri, LinkPaths.Provider provider) throws IOException {
+
+        AtomicReference<String> module = new AtomicReference<>("");
 
         return new BufferedReader(new InputStreamReader(
                 uri.toURL().openStream(), StandardCharsets.UTF_8))
                 .lines()
+                .map(line -> {if (line.startsWith(MODULE_START)) {
+                    module.set((line.substring(MODULE_START.length())));
+                    return "";
+                }
+                else {
+                    return line;
+                }
+                })
                 .filter(s -> !s.isBlank())
-                .collect(Collectors.toMap(Function.identity(), s -> index));
+                .collect(Collectors.toMap(Function.identity(), s -> provider.linkPathsFor(module.get())));
     }
 
     static class Processor implements LinkResolver {

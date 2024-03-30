@@ -38,9 +38,8 @@ Supported javadoc tags are:
 {@link}
 : The contents will be checked against the reference and
 if it refers to another job or type in the reference that page will
-be linked otherwise an api url will be used. Only one apiurl can be
-specified and it defaults to the [rgordon.co.uk api doc](rgordon.co.uk/oddjob/docs.html).
-links to the JDK api should not be used in these blocks as they will not be resolved.
+be linked otherwise external Javadoc urls will be used. These can be specified with multiple
+-link options. If none are provided it  defaults to the [rgordon.co.uk api doc](rgordon.co.uk/oddjob/docs.html).
 
 {@code}
 : This is converted to preformatted text.

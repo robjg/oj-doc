@@ -18,7 +18,6 @@ class ExternLinkProviderTest {
     void relativeLinkResolvedOk() {
 
         Path path = Paths.get("./src/test/resources/ref");
-        System.out.println(path.toUri());
 
         ExternLinkProvider provider = ExternLinkProvider.throwingException();
         provider.addRelativeLink("../api", path);
@@ -60,5 +59,26 @@ class ExternLinkProviderTest {
 
         assertThat(link, is(url + "/org/bar/SomeBar.html"));
     }
+
+    @Test
+    void moduleElementListLinkResolvedOk() {
+
+
+        ExternLinkProvider provider = ExternLinkProvider.throwingException();
+        provider.addRelativeLink("src/test/resources/moduleapi", Path.of("."));
+
+        LinkResolver linkResolver = provider.apiLinkFor(".");
+
+        String link1 = linkResolver.resolve("java.lang.String", "html")
+                .orElseThrow();
+
+        assertThat(link1, is("./src/test/resources/moduleapi/java.base/java/lang/String.html"));
+
+        String link2 = linkResolver.resolve("javax.naming.Foo", "html")
+                .orElseThrow();
+
+        assertThat(link2, is("./src/test/resources/moduleapi/java.naming/javax/naming/Foo.html"));
+    }
+
 
 }

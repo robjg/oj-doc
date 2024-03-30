@@ -29,9 +29,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -51,7 +51,7 @@ public class ReferenceDoclet implements Doclet {
 
     public static final String WRITER_FACTORY_OPTION = "-writerfactory";
 
-    public static final String API_URL_OPTION = "-apiurl";
+    public static final String API_URL_OPTION = "-link";
 
     private final Options options = new Options();
 
@@ -166,7 +166,7 @@ public class ReferenceDoclet implements Doclet {
             writerFactory.setArchive(archiver);
             writerFactory.setDestination(destination);
             writerFactory.setTitle(title);
-            writerFactory.setApiLinks(List.of(Objects.requireNonNullElse(options.apiUrl, "../api")));
+            writerFactory.setApiLinks(options.links.isEmpty() ? List.of("../api") : options.links);
             writerFactory.setErrorConsumer(message -> reporter.print(Diagnostic.Kind.WARNING, message));
 
             ReferenceWriter referenceWriter = writerFactory.create();
@@ -364,7 +364,7 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public String getDescription() {
-                        return "URL for the Oddjob API";
+                        return "Links to external Javadoc";
                     }
 
                     @Override
@@ -379,12 +379,12 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public String getParameters() {
-                        return "api-url";
+                        return "link-url";
                     }
 
                     @Override
                     public boolean process(String option, List<String> arguments) {
-                        options.apiUrl = arguments.get(0);
+                        options.links.add(arguments.get(0));
                         return true;
                     }
                 }
@@ -448,6 +448,6 @@ public class ReferenceDoclet implements Doclet {
 
         private String writerFactory;
 
-        private String apiUrl;
+        private final List<String> links = new ArrayList<>();
     }
 }

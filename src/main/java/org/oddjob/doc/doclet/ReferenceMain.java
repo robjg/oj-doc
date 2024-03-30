@@ -37,7 +37,7 @@ public class ReferenceMain implements Callable<Integer> {
 
     private String writerFactory;
 
-    private String apiUrl;
+    private List<String> links;
 
     private boolean verbose;
 
@@ -50,6 +50,8 @@ public class ReferenceMain implements Callable<Integer> {
     public static int mainCall(String... args) {
 
         ReferenceMain main = new ReferenceMain();
+
+        List<String> links = new ArrayList<>();
 
         for (int i = 0; i < args.length; ++i) {
             String arg = args[i];
@@ -70,13 +72,15 @@ public class ReferenceMain implements Callable<Integer> {
                 continue;
             }
             if (ReferenceDoclet.API_URL_OPTION.equals(arg)) {
-                main.setApiUrl(args[++i]);
+                links.add(args[++i]);
                 continue;
             }
             if (i == args.length - 1) {
                 main.setPackages(args[i]);
             }
         }
+
+        main.setLinks(links);
 
         return main.call();
     }
@@ -127,9 +131,11 @@ public class ReferenceMain implements Callable<Integer> {
             args.add(ReferenceDoclet.WRITER_FACTORY_OPTION);
             args.add(wf);
         });
-        Optional.ofNullable(this.apiUrl).ifPresent(url -> {
-            args.add(ReferenceDoclet.API_URL_OPTION);
-            args.add(url);
+        Optional.ofNullable(this.links).ifPresent(urls -> {
+            urls.forEach(url ->  {
+                args.add(ReferenceDoclet.API_URL_OPTION);
+                args.add(url);
+            });
         });
 
         logger.info("Running javadoc with {}", args);
@@ -209,12 +215,12 @@ public class ReferenceMain implements Callable<Integer> {
         this.writerFactory = writerFactory;
     }
 
-    public String getApiUrl() {
-        return apiUrl;
+    public List<String> getLinks() {
+        return links;
     }
 
-    public void setApiUrl(String apiUrl) {
-        this.apiUrl = apiUrl;
+    public void setLinks(List<String> links) {
+        this.links = links;
     }
 
     public boolean isVerbose() {

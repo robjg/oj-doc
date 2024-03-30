@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -54,9 +55,7 @@ class MdReferenceWriterTest {
         referenceMain.setSourcepath(oddjobSrc.toString());
         referenceMain.setLoaderPath(includes.toString());
         referenceMain.setWriterFactory(MdReferenceWriterFactory.class.getName());
-        referenceMain.setApiUrl("http://rgordon.co.uk/oddjob/1.6.0/api");
-//        referenceMain.setDescriptorResource(descriptor);
-//        referenceMain.setDescriptorPath(resourcePath.toString());
+        referenceMain.setLinks(List.of("http://rgordon.co.uk/oddjob/1.6.0/api", "https://docs.oracle.com/en/java/javase/11/docs/api"));
 
         int result = referenceMain.call();
 
@@ -93,7 +92,7 @@ class MdReferenceWriterTest {
         referenceMain.setSourcepath(oddjobSrc.toString());
         referenceMain.setLoaderPath(includes.toString());
         referenceMain.setWriterFactory(MdReferenceWriterFactory.class.getName());
-        referenceMain.setApiUrl("http://rgordon.co.uk/oddjob/1.6.0/api");
+        referenceMain.setLinks(List.of("http://rgordon.co.uk/oddjob/1.6.0/api", "https://docs.oracle.com/en/java/javase/11/docs/api"));
         referenceMain.setDescriptorUrl(descriptorUrl);
 
         int result = referenceMain.call();
