@@ -3,7 +3,6 @@ package org.oddjob.doc.html;
 import org.oddjob.arooa.beandocs.element.LinkElement;
 import org.oddjob.doc.doclet.ReferenceWriter;
 import org.oddjob.doc.doclet.ReferenceWriterFactory;
-import org.oddjob.doc.markdown.MarkdownLinks;
 import org.oddjob.doc.util.*;
 
 import java.nio.file.Path;
@@ -39,7 +38,7 @@ public class HtmlReferenceWriterFactory extends ReferenceWriterFactory {
         ContextProviderImpl(LinkResolverProvider apiLinkProvider) {
             this.linkProcessorProvider = RefFirstLinks.newProcessorProvider(
                     apiLinkProvider, getArchive(),
-                    new MarkdownLinks(), REFERENCE_EXTENSION);
+                    new HtmlLinks(), REFERENCE_EXTENSION);
         }
 
         @Override
