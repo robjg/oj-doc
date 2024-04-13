@@ -19,7 +19,7 @@ public class XmlResourceTagletTest {
     public void testProcessTag() {
 
         DocTree content = mock(DocTree.class);
-        when(content.toString()).thenReturn("org/oddjob/tools/doclet/utils/SomeXML.xml");
+        when(content.toString()).thenReturn("org/oddjob/doc/taglet/SomeXML.xml");
 
         UnknownInlineTagTree tag = mock(UnknownInlineTagTree.class);
         Mockito.doReturn(List.of(content)).when(tag).getContent();

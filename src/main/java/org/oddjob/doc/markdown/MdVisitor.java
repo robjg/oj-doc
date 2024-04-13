@@ -33,6 +33,8 @@ public class MdVisitor implements DocElementVisitor<MdContext, String> {
     final static Tag LI_TAG = new Tag("LI");
 
 
+    /** If set then new lines are removed. So for the index README we don't want new
+     * lines. */
     private final boolean noNewLines;
 
     private boolean startSection = true;
@@ -43,6 +45,11 @@ public class MdVisitor implements DocElementVisitor<MdContext, String> {
         this.noNewLines = noNewLines;
     }
 
+    /**
+     * Create a visitor that keeps new lines.
+     *
+     * @return The visitor.
+     */
     public static MdVisitor instance() {
         return new MdVisitor(false);
     }
