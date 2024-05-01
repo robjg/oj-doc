@@ -12,6 +12,7 @@ import org.oddjob.arooa.beandocs.SessionArooaDocFactory;
 import org.oddjob.arooa.beandocs.WriteableArooaDoc;
 import org.oddjob.arooa.convert.convertlets.FileConvertlets;
 import org.oddjob.arooa.deploy.ClassPathDescriptorFactory;
+import org.oddjob.arooa.deploy.ListDescriptor;
 import org.oddjob.arooa.deploy.URLDescriptorFactory;
 import org.oddjob.arooa.standard.StandardArooaSession;
 import org.oddjob.arooa.utils.ClassUtils;
@@ -29,10 +30,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The Doclet for creating the Oddjob reference.
@@ -67,9 +65,9 @@ public class ReferenceDoclet implements Doclet {
         return new URLClassLoader(urls);
     }
 
-    SessionArooaDocFactory loadDescriptor(String descriptorUrl) throws MalformedURLException {
+    SessionArooaDocFactory loadDescriptor(List<String> descriptorUrls) throws MalformedURLException {
 
-        if (descriptorUrl == null) {
+        if (descriptorUrls == null || descriptorUrls.isEmpty()) {
 
             ClassPathDescriptorFactory factory
                     = new ClassPathDescriptorFactory();
@@ -86,13 +84,28 @@ public class ReferenceDoclet implements Doclet {
         } else {
 
             this.reporter.print(Diagnostic.Kind.NOTE, "Finding Arooa Descriptor " +
-                    descriptorUrl);
+                    descriptorUrls);
 
-            URLDescriptorFactory urlDescriptorFactory = new URLDescriptorFactory(
-                    new URL(descriptorUrl));
+            List<ArooaDescriptor> arooaDescriptors = new LinkedList<>();
 
-            ArooaDescriptor descriptor = urlDescriptorFactory.createDescriptor(
-                    getClass().getClassLoader());
+            for (String descriptorUrl: descriptorUrls) {
+
+                URLDescriptorFactory urlDescriptorFactory = new URLDescriptorFactory(
+                        new URL(descriptorUrl));
+
+                ArooaDescriptor descriptor = urlDescriptorFactory.createDescriptor(
+                        getClass().getClassLoader());
+
+                arooaDescriptors.add(descriptor);
+            }
+
+            ArooaDescriptor descriptor;
+            if (arooaDescriptors.size() == 1) {
+                descriptor = arooaDescriptors.get(0);
+            }
+            else {
+                descriptor = new ListDescriptor(arooaDescriptors);
+            }
 
             return new SessionArooaDocFactory(
                     new StandardArooaSession(), descriptor);
@@ -103,7 +116,7 @@ public class ReferenceDoclet implements Doclet {
 
         private final JobsAndTypes jats;
 
-        public Main(String descriptorUrl) throws MalformedURLException {
+        public Main(List<String> descriptorUrl) throws MalformedURLException {
 
             SessionArooaDocFactory docsFactory = loadDescriptor(descriptorUrl);
 
@@ -256,7 +269,7 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public boolean process(String option, List<String> arguments) {
-                        options.descriptorUrl = arguments.get(0);
+                        options.descriptorUrls.add(arguments.get(0));
                         return true;
                     }
                 },
@@ -420,7 +433,7 @@ public class ReferenceDoclet implements Doclet {
                     ClassUtils.classLoaderStack(resourceClassLoader, "Resource Loader Class Loader"));
 
             Main md = new Main(
-                    options.descriptorUrl);
+                    options.descriptorUrls);
 
             result = md.process(environment, options.destination,
                     options.title, resourceClassLoader);
@@ -440,7 +453,7 @@ public class ReferenceDoclet implements Doclet {
 
         private String destination;
 
-        private String descriptorUrl;
+        private final List<String> descriptorUrls = new ArrayList<>();
 
         private String title;
 

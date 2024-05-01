@@ -93,7 +93,7 @@ class MdReferenceWriterTest {
         referenceMain.setLoaderPath(includes.toString());
         referenceMain.setWriterFactory(MdReferenceWriterFactory.class.getName());
         referenceMain.setLinks(List.of("http://rgordon.co.uk/oddjob/1.6.0/api", "https://docs.oracle.com/en/java/javase/11/docs/api"));
-        referenceMain.setDescriptorUrl(descriptorUrl);
+        referenceMain.setDescriptorUrls(List.of(descriptorUrl));
 
         int result = referenceMain.call();
 

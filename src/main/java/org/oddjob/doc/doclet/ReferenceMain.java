@@ -33,7 +33,7 @@ public class ReferenceMain implements Callable<Integer> {
 
     private String loaderPath;
 
-    private String descriptorUrl;
+    private List<String> descriptorUrls;
 
     private String writerFactory;
 
@@ -52,6 +52,7 @@ public class ReferenceMain implements Callable<Integer> {
         ReferenceMain main = new ReferenceMain();
 
         List<String> links = new ArrayList<>();
+        List<String> descriptorUrls = new ArrayList<>();
 
         for (int i = 0; i < args.length; ++i) {
             String arg = args[i];
@@ -68,7 +69,7 @@ public class ReferenceMain implements Callable<Integer> {
                 continue;
             }
             if (ReferenceDoclet.DESCRIPTOR_URL_OPTION.equals(arg)) {
-                main.setDescriptorUrl(args[++i]);
+                descriptorUrls.add(args[++i]);
                 continue;
             }
             if (ReferenceDoclet.API_URL_OPTION.equals(arg)) {
@@ -80,6 +81,7 @@ public class ReferenceMain implements Callable<Integer> {
             }
         }
 
+        main.setDescriptorUrls(descriptorUrls);
         main.setLinks(links);
 
         return main.call();
@@ -123,9 +125,11 @@ public class ReferenceMain implements Callable<Integer> {
             args.add(ReferenceDoclet.LOADER_PATH_OPTION);
             args.add(lp);
         });
-        Optional.ofNullable(this.descriptorUrl).ifPresent(dp -> {
-            args.add(ReferenceDoclet.DESCRIPTOR_URL_OPTION);
-            args.add(dp);
+        Optional.ofNullable(this.descriptorUrls).ifPresent(ds -> {
+            ds.forEach(url -> {
+                args.add(ReferenceDoclet.DESCRIPTOR_URL_OPTION);
+                args.add(url);
+            });
         });
         Optional.ofNullable(this.writerFactory).ifPresent(wf -> {
             args.add(ReferenceDoclet.WRITER_FACTORY_OPTION);
@@ -203,12 +207,12 @@ public class ReferenceMain implements Callable<Integer> {
         return writerFactory;
     }
 
-    public String getDescriptorUrl() {
-        return descriptorUrl;
+    public List<String> getDescriptorUrls() {
+        return descriptorUrls;
     }
 
-    public void setDescriptorUrl(String descriptorUrl) {
-        this.descriptorUrl = descriptorUrl;
+    public void setDescriptorUrls(List<String> descriptorUrls) {
+        this.descriptorUrls = descriptorUrls;
     }
 
     public void setWriterFactory(String writerFactory) {
