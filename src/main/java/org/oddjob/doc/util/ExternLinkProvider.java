@@ -1,5 +1,8 @@
 package org.oddjob.doc.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -8,11 +11,10 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -25,6 +27,8 @@ import java.util.stream.Collectors;
  * </p>
  */
 public class ExternLinkProvider implements LinkResolverProvider {
+
+    private static final Logger logger = LoggerFactory.getLogger(ExternLinkProvider.class);
 
     static final String MODULE_START = "module:";
 
@@ -60,8 +64,7 @@ public class ExternLinkProvider implements LinkResolverProvider {
         for (String link : links) {
             if (isRelative(link)) {
                 addRelativeLink(link, relativeTo);
-            }
-            else {
+            } else {
                 addLink(link);
             }
         }
@@ -116,21 +119,48 @@ public class ExternLinkProvider implements LinkResolverProvider {
 
     protected Map<String, LinkPaths> loadUri(URI uri, LinkPaths.Provider provider) throws IOException {
 
-        AtomicReference<String> module = new AtomicReference<>("");
-
-        return new BufferedReader(new InputStreamReader(
+        List<String> lines = new BufferedReader(new InputStreamReader(
                 uri.toURL().openStream(), StandardCharsets.UTF_8))
                 .lines()
-                .map(line -> {if (line.startsWith(MODULE_START)) {
-                    module.set((line.substring(MODULE_START.length())));
-                    return "";
-                }
-                else {
-                    return line;
-                }
-                })
-                .filter(s -> !s.isBlank())
-                .collect(Collectors.toMap(Function.identity(), s -> provider.linkPathsFor(module.get())));
+                .collect(Collectors.toList());
+
+        Map<String, LinkPaths> packagesToPaths = new HashMap<>();
+
+        LinkPaths linkPaths = provider.linkPathsFor("");
+
+        for (String line : lines) {
+
+            // Oracle now just return the api docs for the element-list url
+            if (line.contains("<") || line.contains(">")) {
+                throw new FileNotFoundException(uri + " contains html. Assuming file not found");
+            }
+
+            String trimmed = line.trim();
+
+            if (trimmed.isEmpty()) {
+                logger.warn("Unexpected empty line in package list for {}", uri);
+                continue;
+            }
+
+            if (line.startsWith(MODULE_START)) {
+                String module = line.substring(MODULE_START.length());
+                linkPaths = provider.linkPathsFor(module);
+                continue;
+            }
+
+            if (!line.equals(trimmed)) {
+                logger.warn("Unexpected whitespace on line [{}] in package list for {}", line, uri);
+                continue;
+            }
+
+            if (packagesToPaths.containsKey(trimmed)) {
+                logger.warn("Unexpected duplicate key for [{}] in package list for {}", trimmed, uri);
+            }
+
+            packagesToPaths.put(trimmed, linkPaths);
+        }
+
+        return packagesToPaths;
     }
 
     static class Processor implements LinkResolver {

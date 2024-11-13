@@ -63,6 +63,13 @@ abstract public class LinkPaths {
                 return absoluteLink + "/" + fileName;
             };
         }
+
+        @Override
+        public String toString() {
+            return "AbsoluteLinkPath{" +
+                    "absoluteLink='" + absoluteLink + '\'' +
+                    '}';
+        }
     }
 
 }
