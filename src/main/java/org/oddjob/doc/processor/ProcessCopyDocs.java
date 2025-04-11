@@ -9,11 +9,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Post Processes docs looking for Tags to replace with imported code and configuration.
@@ -29,10 +29,19 @@ public class ProcessCopyDocs implements Callable<Integer> {
      */
     private String name;
 
+	/**
+	 * The directory of the source files
+	 */
     private Path fromDir;
 
+	/**
+	 * The directory to write the processed files to.
+	 */
 	private Path toDir;
 
+	/**
+	 * The file pattern to match, in glob format. Must be provided.
+	 */
     private String pattern;
 
     /**
@@ -40,6 +49,9 @@ public class ProcessCopyDocs implements Callable<Integer> {
      */
     private Path baseDir;
 
+	/**
+	 * The format. MD (Markdown) or HTML (the default).
+	 */
 	private Format format;
 
 	public enum Format {
@@ -82,13 +94,22 @@ public class ProcessCopyDocs implements Callable<Integer> {
 
 		List<Path> files = findFiles(fromDir, pattern);
 
+		if (files.isEmpty()) {
+			logger.info("No files found to process.");
+		}
+
         for (Path file : files) {
 
 			Path pathIn = fromDir.resolve(file);
 
 			Path pathOut = toDir.resolve(file);
+			Path dirOut = pathOut.getParent();
+			if (!Files.exists(dirOut)) {
+				logger.info("Creating output directory");
+				Files.createDirectories(dirOut);
+			}
 
-            logger.info("Processing " + pathIn + " to " + pathOut);
+            logger.info("Processing {} to {}", pathIn, pathOut);
 
 			format.process(processor, Files.newInputStream(pathIn),
 					Files.newOutputStream(pathOut));
@@ -148,17 +169,25 @@ public class ProcessCopyDocs implements Callable<Integer> {
 		this.format = format;
 	}
 
-	List<Path> findFiles(Path rootDir, String pattern) throws IOException {
+	static List<Path> findFiles(Path rootDir, String pattern) throws IOException {
 		FileSystem fs = FileSystems.getDefault();
 		PathMatcher matcher = fs.getPathMatcher("glob:" + pattern);
 
-		try (Stream<Path> walk = Files.walk(rootDir)) {
-			return walk.filter(p -> Files.isRegularFile(p) && matcher.matches(p.getFileName()))
-					.map(rootDir::relativize)
-					.collect(Collectors.toList());
-		}
-    }
+		List<Path> results = new ArrayList<>();
 
+		Files.walkFileTree(rootDir,
+				new SimpleFileVisitor<>() {
+					@Override
+					public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+						Path relative = rootDir.relativize(file);
+						if (matcher.matches(relative)) {
+							results.add(relative);
+						}
+						return FileVisitResult.CONTINUE;
+					}
+				});
+		return results;
+    }
 
     @Override
     public String toString() {
