@@ -51,16 +51,25 @@ class ProcessCopyDocsTest {
     @Test
     void findFiles() throws IOException {
 
+        Path root = Path.of("src/main/java");
+
         List<Path> results1 = ProcessCopyDocs.findFiles(
-                Path.of("src/main/java"), "**/*.java");
+                root, "**.java");
 
         assertThat(results1.contains(Path.of("org/oddjob/doc/processor/DocPostProcessor.java")),
                 is(true));
 
         List<Path> results2 = ProcessCopyDocs.findFiles(
-                Path.of("src/main/java"), "org/oddjob/doc/processor/*.java");
+                root, "org/oddjob/doc/processor/*.java");
 
         assertThat(results2.contains(Path.of("org/oddjob/doc/processor/DocPostProcessor.java")),
                 is(true));
+
+        List<Path> results3 = ProcessCopyDocs.findFiles(
+                root.resolve("org/oddjob/doc/processor"), "**.java");
+
+        assertThat(results3.contains(Path.of("DocPostProcessor.java")),
+                is(true));
+
     }
 }
