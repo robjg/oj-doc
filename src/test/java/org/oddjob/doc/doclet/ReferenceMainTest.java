@@ -1,8 +1,12 @@
 package org.oddjob.doc.doclet;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.oddjob.Oddjob;
 import org.oddjob.state.ParentState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,6 +15,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 class ReferenceMainTest {
+
+    private static final Logger logger = LoggerFactory.getLogger(ReferenceMainTest.class);
+
+    @BeforeEach
+    void setup(TestInfo testInfo) {
+        logger.info("-----------------   {}   --------------------", testInfo.getDisplayName());
+    }
 
     @Test
     void oddjobReferenceExample() {
