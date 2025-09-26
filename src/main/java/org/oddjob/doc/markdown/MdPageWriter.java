@@ -133,7 +133,8 @@ public class MdPageWriter {
                     if (ConfiguredHow.HIDDEN == elem.getConfiguredHow()) {
                         continue;
                     }
-                    out.println("| [" + elem.getPropertyName() + "](#property" + elem.getPropertyName() + ") | "
+                    out.println("| [" + elem.getPropertyName() + "](#property" +
+                            elem.getPropertyName().toLowerCase() + ") | " // GitHub doesn't like CamelCase.
                             + toLine(elem.getFirstSentence()) + " | ");
                 }
                 out.println();
@@ -162,7 +163,8 @@ public class MdPageWriter {
                     if (ConfiguredHow.HIDDEN == elem.getConfiguredHow()) {
                         continue;
                     }
-                    out.println("#### " + elem.getPropertyName() + " <a name=\"property" + elem.getPropertyName() + "\"></a>");
+                    out.println("#### " + elem.getPropertyName() + " <a name=\"property"
+                            + elem.getPropertyName().toLowerCase() + "\"></a>");
                     out.println();
                     out.println("<table style='font-size:smaller'>");
                     if (elem.getAccess() != PropertyDoc.Access.READ_ONLY) {
