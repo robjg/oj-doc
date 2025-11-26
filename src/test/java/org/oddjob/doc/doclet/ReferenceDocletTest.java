@@ -8,6 +8,7 @@ import org.oddjob.OurDirs;
 import org.oddjob.arooa.convert.convertlets.FileConvertlets;
 import org.oddjob.arooa.utils.FileUtils;
 import org.oddjob.tools.BuildOddball;
+import org.oddjob.util.ReferenceMain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

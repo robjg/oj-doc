@@ -2,7 +2,7 @@ package org.oddjob.doc.markdown;
 
 import org.junit.jupiter.api.Test;
 import org.oddjob.OurDirs;
-import org.oddjob.doc.doclet.ReferenceMain;
+import org.oddjob.util.ReferenceMain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

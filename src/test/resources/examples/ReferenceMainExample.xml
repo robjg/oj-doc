@@ -24,7 +24,7 @@
                         </files>
                     </loaderPath>
                 </variables>
-                <bean class="org.oddjob.doc.doclet.ReferenceMain" classPath="${oddjobResolve.resolvedFilesArray}" directory="${reference.dir}" packages="org.oddjob" sourcepath="${project.dir}/oddjob/src/main/java"
+                <bean class="org.oddjob.util.ReferenceMain" classPath="${oddjobResolve.resolvedFilesArray}" directory="${reference.dir}" packages="org.oddjob" sourcepath="${project.dir}/oddjob/src/main/java"
                 loaderPath="${vars.loaderPath}">
                 </bean>
             </jobs>
