@@ -5,6 +5,7 @@ package org.oddjob.doc.markdown;
 
 import org.oddjob.arooa.beandocs.BeanDoc;
 import org.oddjob.arooa.beandocs.BeanDocArchive;
+import org.oddjob.arooa.beandocs.ConversionArchive;
 import org.oddjob.doc.doclet.IndexLine;
 import org.oddjob.doc.doclet.ReferenceWriter;
 
@@ -38,7 +39,7 @@ public class MdReferenceWriter implements ReferenceWriter {
     /**
      * Write a single reference page.
      *
-     * @param beanDoc
+     * @param beanDoc The unformatted doc.
      */
     public IndexLine writePage(BeanDoc beanDoc) {
 
@@ -135,13 +136,38 @@ public class MdReferenceWriter implements ReferenceWriter {
         return  indexLines;
     }
 
+    /**
+     * Create the conversions page.
+     *
+     */
+    public void writeConversions(ConversionArchive conversionArchive) {
+
+        Path directory = pageWriter.getRootDirectory();
+
+        MdContext mdContext = pageWriter.getContextProvider().contextFor("./");
+
+        Path indexFile = directory.resolve("Conversions.md");
+
+        try (PrintWriter out = new PrintWriter(new FileWriter(indexFile.toFile()))) {
+
+            MdConversionsWriter.forContext(mdContext).to(out)
+                    .write(conversionArchive);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
     @Override
-    public void createManual(BeanDocArchive archive) {
+    public void createManual(BeanDocArchive archive,
+                             ConversionArchive conversionArchive) {
 
         List<IndexLine> jobIndexLines = writeAll(archive.allJobDoc());
         List<IndexLine> typeIndexLines = writeAll(archive.allTypeDoc());
 
         writeIndex(jobIndexLines, typeIndexLines);
+
+        writeConversions(conversionArchive);
     }
 
 }

@@ -11,6 +11,10 @@ public interface TypeConsumers extends AutoCloseable {
 
     BeanDocConsumer.Property property(String property);
 
+    BeanDocConsumer conversion();
+
+    BeanDocConsumer conversion(String method);
+
     @Override
     void close();
 }

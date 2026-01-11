@@ -10,6 +10,7 @@ import org.oddjob.arooa.ArooaDescriptor;
 import org.oddjob.arooa.ArooaType;
 import org.oddjob.arooa.beandocs.SessionArooaDocFactory;
 import org.oddjob.arooa.beandocs.WriteableArooaDoc;
+import org.oddjob.arooa.beandocs.WriteableConversionDocs;
 import org.oddjob.arooa.convert.convertlets.FileConvertlets;
 import org.oddjob.arooa.deploy.ClassPathDescriptorFactory;
 import org.oddjob.arooa.deploy.ListDescriptor;
@@ -27,9 +28,7 @@ import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.net.*;
 import java.util.*;
 
 /**
@@ -65,7 +64,7 @@ public class ReferenceDoclet implements Doclet {
         return new URLClassLoader(urls);
     }
 
-    SessionArooaDocFactory loadDescriptor(List<String> descriptorUrls) throws MalformedURLException {
+    SessionArooaDocFactory loadDescriptor(List<String> descriptorUrls) throws MalformedURLException, URISyntaxException {
 
         if (descriptorUrls == null || descriptorUrls.isEmpty()) {
 
@@ -91,7 +90,7 @@ public class ReferenceDoclet implements Doclet {
             for (String descriptorUrl: descriptorUrls) {
 
                 URLDescriptorFactory urlDescriptorFactory = new URLDescriptorFactory(
-                        new URL(descriptorUrl));
+                        new URI(descriptorUrl).toURL());
 
                 ArooaDescriptor descriptor = urlDescriptorFactory.createDescriptor(
                         getClass().getClassLoader());
@@ -101,7 +100,7 @@ public class ReferenceDoclet implements Doclet {
 
             ArooaDescriptor descriptor;
             if (arooaDescriptors.size() == 1) {
-                descriptor = arooaDescriptors.get(0);
+                descriptor = arooaDescriptors.getFirst();
             }
             else {
                 descriptor = new ListDescriptor(arooaDescriptors);
@@ -116,7 +115,9 @@ public class ReferenceDoclet implements Doclet {
 
         private final JobsAndTypes jats;
 
-        public Main(List<String> descriptorUrl) throws MalformedURLException {
+        private final Conversions conversions;
+
+        public Main(List<String> descriptorUrl) throws MalformedURLException, URISyntaxException {
 
             SessionArooaDocFactory docsFactory = loadDescriptor(descriptorUrl);
 
@@ -127,6 +128,11 @@ public class ReferenceDoclet implements Doclet {
                     docsFactory.createBeanDocs(ArooaType.VALUE);
 
             this.jats = new JobsAndTypes(jobs, types);
+
+            WriteableConversionDocs conversionsByType =
+                    docsFactory.createConversionDocs();
+
+            this.conversions = new Conversions(conversionsByType);
         }
 
         JobsAndTypes jobsAndTypes() {
@@ -143,7 +149,7 @@ public class ReferenceDoclet implements Doclet {
 
             Processor processor = new Processor(docEnv, loaderProvider, reporter);
 
-            final Archiver archiver = new Archiver(jats, processor, reporter);
+            final Archiver archiver = new Archiver(jats, conversions, processor, reporter);
 
             boolean result = true;
 
@@ -183,7 +189,7 @@ public class ReferenceDoclet implements Doclet {
             writerFactory.setErrorConsumer(message -> reporter.print(Diagnostic.Kind.WARNING, message));
 
             ReferenceWriter referenceWriter = writerFactory.create();
-            referenceWriter.createManual(archiver);
+            referenceWriter.createManual(archiver, archiver);
 
             return result;
         }
@@ -237,7 +243,7 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public boolean process(String option, List<String> arguments) {
-                        options.destination = arguments.get(0);
+                        options.destination = arguments.getFirst();
                         return true;
                     }
                 },
@@ -269,7 +275,7 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public boolean process(String option, List<String> arguments) {
-                        options.descriptorUrls.add(arguments.get(0));
+                        options.descriptorUrls.add(arguments.getFirst());
                         return true;
                     }
                 },
@@ -301,7 +307,7 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public boolean process(String option, List<String> arguments) {
-                        options.title = arguments.get(0);
+                        options.title = arguments.getFirst();
                         return true;
                     }
                 },
@@ -333,7 +339,7 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public boolean process(String option, List<String> arguments) {
-                        options.loaderPath = arguments.get(0);
+                        options.loaderPath = arguments.getFirst();
                         return true;
                     }
                 },
@@ -365,7 +371,7 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public boolean process(String option, List<String> arguments) {
-                        options.writerFactory = arguments.get(0);
+                        options.writerFactory = arguments.getFirst();
                         return true;
                     }
                 },
@@ -397,7 +403,7 @@ public class ReferenceDoclet implements Doclet {
 
                     @Override
                     public boolean process(String option, List<String> arguments) {
-                        options.links.add(arguments.get(0));
+                        options.links.add(arguments.getFirst());
                         return true;
                     }
                 }
@@ -439,7 +445,7 @@ public class ReferenceDoclet implements Doclet {
                     options.title, resourceClassLoader);
 
         } catch (ClassNotFoundException | InvocationTargetException | InstantiationException | NoSuchMethodException |
-                 IllegalAccessException | MalformedURLException e) {
+                 IllegalAccessException | MalformedURLException | URISyntaxException e) {
             reporter.print(Diagnostic.Kind.ERROR, e.getMessage());
             result = false;
         }

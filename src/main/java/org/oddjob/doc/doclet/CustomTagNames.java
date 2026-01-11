@@ -36,7 +36,12 @@ public class CustomTagNames {
 	public static final String EXAMPLE_TAG_NAME = "oddjob.example";
 
 	public static final String EXAMPLE_TAG = "@" + EXAMPLE_TAG_NAME;
-	
+
+    /**
+     * Tag for a conversion.
+     */
+    public static final String CONVERSION_TAG_NAME = "oddjob.conversion";
+
 	/**
 	 * Tag for an XML resource that is to be loaded into the documentation
 	 * as formatted XML.

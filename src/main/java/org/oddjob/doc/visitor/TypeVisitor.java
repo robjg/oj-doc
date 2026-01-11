@@ -8,6 +8,7 @@ import org.oddjob.doc.beandoc.TypeConsumers;
 import org.oddjob.doc.doclet.CustomTagNames;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Visits the Doc for a Type.
@@ -40,7 +41,7 @@ public class TypeVisitor {
         private final TypeConsumers beanDocConsumer;
 
         TheVisitor(TypeConsumers beanDocConsumer) {
-            this.beanDocConsumer = beanDocConsumer;
+            this.beanDocConsumer = Objects.requireNonNull(beanDocConsumer);
         }
 
         @Override
@@ -49,20 +50,23 @@ public class TypeVisitor {
             String tagName = node.getTagName();
 
             BeanDocConsumer docConsumer;
-            if (CustomTagNames.DESCRIPTION_TAG_NAME.equals(tagName)) {
+            switch (tagName) {
+                case CustomTagNames.DESCRIPTION_TAG_NAME -> docConsumer = beanDocConsumer.description();
+                case CustomTagNames.EXAMPLE_TAG_NAME -> docConsumer = beanDocConsumer.example();
+                case CustomTagNames.CONVERSION_TAG_NAME -> docConsumer = beanDocConsumer.conversion();
+                case null, default -> {
 
-                docConsumer = beanDocConsumer.description();
+                    visitorContext.warn("Ignoring: " + node);
 
-            } else if (CustomTagNames.EXAMPLE_TAG_NAME.equals(tagName)) {
+                    return null;
+                }
+            }
 
-                docConsumer = beanDocConsumer.example();
-
-            } else {
-
-                visitorContext.warn("Ignoring: " + node);
-
+            // The Type Consumer will have warned doc is in the wrong place.
+            if (docConsumer == null) {
                 return null;
             }
+
 
             DocCommentTree docCommentTree = docTrees.getDocTreeFactory().newDocCommentTree(
                     node.getContent(), List.of());

@@ -7,6 +7,8 @@ import org.oddjob.doc.beandoc.BeanDocConsumer;
 import org.oddjob.doc.beandoc.TypeConsumers;
 import org.oddjob.doc.doclet.CustomTagNames;
 import org.oddjob.doc.util.DocUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
@@ -15,6 +17,8 @@ import java.util.Objects;
  * Doc Tree Node Visitor for Oddjob Properties.
  */
 public class PropertyVisitor extends NoopVisitor {
+
+    private static final Logger logger = LoggerFactory.getLogger(PropertyVisitor.class);
 
     private final DocTrees docTrees;
 
@@ -66,8 +70,8 @@ public class PropertyVisitor extends NoopVisitor {
 
                 if (!tagContent.isBlank()) {
                     if (!tagContent.equals(this.propertyName)) {
-                        visitorContext.warn("Derived Property name [" + this.propertyName  +
-                                "] does not match tag property name [" + tagContent + "]");
+                        logger.debug("Derived Property name [{}] does not match tag property name [{}]",
+                                this.propertyName, tagContent);
 
                     }
                     this.propertyName = tagContent;
@@ -101,9 +105,6 @@ public class PropertyVisitor extends NoopVisitor {
 
                 propertyConsumer.required(DocUtil.toString(node.getContent()));
 
-            } else {
-
-                visitorContext.warn("Ignoring: " + node);
             }
 
             return null;

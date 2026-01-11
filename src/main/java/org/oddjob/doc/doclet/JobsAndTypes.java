@@ -18,16 +18,15 @@ import java.util.Map;
  */
 public class JobsAndTypes {
 
-	private final Map<String, BeanDoc> jobDocs = 
-		new LinkedHashMap<String, BeanDoc>();
+	private final Map<String, BeanDoc> jobDocs =
+            new LinkedHashMap<>();
 	
-	private final Map<String, BeanDoc> typeDocs = 
-		new LinkedHashMap<String, BeanDoc>();
-	
-	
+	private final Map<String, BeanDoc> typeDocs =
+            new LinkedHashMap<>();
+
 	/** Map of fqcn to tag for jobs. */
-    private final Map<String, WriteableBeanDoc> docsByName = 
-    	new HashMap<String, WriteableBeanDoc>();
+    private final Map<String, WriteableBeanDoc> docsByName =
+            new HashMap<>();
     
     public JobsAndTypes(WriteableArooaDoc jobDocs, WriteableArooaDoc typeDocs) {   
     	

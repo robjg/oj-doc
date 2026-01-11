@@ -11,149 +11,196 @@ import org.oddjob.arooa.utils.EtcUtils;
 import org.oddjob.doc.beandoc.TypeConsumers;
 import org.oddjob.doc.util.DocUtil;
 import org.oddjob.doc.util.LoaderProvider;
-import org.oddjob.doc.visitor.PropertyVisitor;
-import org.oddjob.doc.visitor.TypeVisitor;
-import org.oddjob.doc.visitor.VisitorContext;
-import org.oddjob.doc.visitor.VisitorContextBuilder;
+import org.oddjob.doc.visitor.*;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import javax.tools.Diagnostic;
+import java.util.*;
 
 /**
  * A Processor is capable of processing a java ClassDoc object into
  * a reference PageData object.
- *   
+ *
  * @author Rob Gordon.
  */
-public class Processor implements ElementProcessor{
+public class Processor implements ElementProcessor {
+
+    private final DocletEnvironment docEnv;
+
+    private final LoaderProvider loaderProvider;
+
+    private final Reporter reporter;
+
+    /**
+     * Create a processor.
+     *
+     * @param docEnv         The utility class for access comments.
+     * @param loaderProvider Helper for inline include tags.
+     * @param reporter       The javadoc Reporter.
+     */
+    public Processor(DocletEnvironment docEnv,
+                     LoaderProvider loaderProvider,
+                     Reporter reporter) {
+
+        this.docEnv = docEnv;
+        this.loaderProvider = loaderProvider;
+        this.reporter = reporter;
+    }
+
+    @Override
+    public void process(TypeElement element,
+                        TypeConsumersProvider typeConsumersProvider) {
+
+        processType(element, typeConsumersProvider, new HashSet<>());
+    }
+
+    public void processType(TypeElement element,
+                            TypeConsumersProvider typeConsumersProvider,
+                            Set<TypeElement> seenAlready) {
+
+        seenAlready.add(element);
+
+        List<Element> enclosed = enclosedElements(element, new ArrayList<>());
+
+        TypeConsumers typeConsumers = typeConsumersProvider.typeConsumersFor(element);
+
+        if (typeConsumers != null) {
+
+            reporter.print(Diagnostic.Kind.NOTE, "Processing " + element);
+
+            DocTrees docTrees = docEnv.getDocTrees();
+
+            DocCommentTree docCommentTree = docTrees.getDocCommentTree(element);
+
+            if (docCommentTree != null) {
+
+                VisitorContext visitorContext = VisitorContextBuilder.create(
+                        docTrees, loaderProvider, reporter, element);
+
+                TypeVisitor.with(docTrees, visitorContext)
+                        .visit(docCommentTree, typeConsumers);
 
 
-	private final DocletEnvironment docEnv ;
+                for (Element enclosedElement : enclosed) {
 
-	private final LoaderProvider loaderProvider;
+                    processFieldOrMethod(enclosedElement, typeConsumers);
+                }
 
-	private final Reporter reporter;
+                typeConsumers.close();
+            }
+        }
 
-	/**
-	 * Create a processor.
-	 *  
-	 * @param docEnv The utility class for access comments.
-	 * @param loaderProvider Helper for inline include tags.
-	 * @param reporter The javadoc Reporter.
-	 */
-	public Processor(DocletEnvironment docEnv,
-					 LoaderProvider loaderProvider,
-					 Reporter reporter) {
+        for (Element enclosedElement : enclosed) {
 
-		this.docEnv = docEnv;
-		this.loaderProvider = loaderProvider;
-		this.reporter = reporter;
-	}
+            if (enclosedElement instanceof TypeElement typeElement) {
 
-	/**
-	 * Process a Type Element.
-	 *
-	 * @param element The Type Element.
-	 * @param typeConsumers The Consumer for a Type
-	 */
-	@Override
-	public void process(TypeElement element, TypeConsumers typeConsumers) {
+                if (seenAlready.contains(typeElement)) {
+                    continue;
+                }
+                System.out.println(typeElement.getQualifiedName());
+                processType(typeElement, typeConsumersProvider, seenAlready);
+            }
+        }
 
-		DocTrees docTrees = docEnv.getDocTrees();
+    }
 
-		DocCommentTree docCommentTree = docTrees.getDocCommentTree(element);
+    /**
+     * Find all the members and methods including those for super classes.
+     *
+     * @param element     The Type Element.
+     * @param accumulator Capture all elements.
+     * @return List of all enclosed elements.
+     */
+    List<Element> enclosedElements(TypeElement element, List<Element> accumulator) {
 
-		if (docCommentTree == null) {
-			return;
-		}
+        if (Object.class.getName().equals(DocUtil.fqcnFor(element))) {
+            return accumulator;
+        }
 
-		VisitorContext visitorContext = VisitorContextBuilder.create(
-				docTrees, loaderProvider, reporter, element);
+        accumulator.addAll(element.getEnclosedElements());
 
-		TypeVisitor.with(docTrees, visitorContext)
-				.visit(docCommentTree, typeConsumers);
+        TypeMirror typeMirror = element.getSuperclass();
 
+        if (typeMirror.getKind() == TypeKind.NONE) {
+            return accumulator;
+        }
 
-		List<Element> enclosed = enclosedElements(element, new ArrayList<>());
+        return enclosedElements(
+                (TypeElement) docEnv.getTypeUtils().asElement(typeMirror), accumulator);
+    }
 
-		for (Element enclosedElement : enclosed) {
+    /**
+     * Process fields and method elements and ignore others.
+     *
+     * @param element       The field or method or other element.
+     * @param typeConsumers The thing that provides the consumer for property
+     *                      or conversion doc.
+     */
+    void processFieldOrMethod(Element element, TypeConsumers typeConsumers) {
 
-			processFieldOrMethod(enclosedElement, typeConsumers);
-		}
+        DocTrees docTrees = docEnv.getDocTrees();
 
-		typeConsumers.close();
-	}
+        DocCommentTree docCommentTree = docTrees.getDocCommentTree(element);
 
-	/**
-	 * Find all the members and methods including those for super classes.
-	 *
-	 * @param element The Type Element.
-	 * @param accumulator Capture all elements.
-	 *
-	 * @return List of all enclosed elements.
-	 */
-	List<Element> enclosedElements(TypeElement element, List<Element> accumulator) {
+        if (docCommentTree == null) {
+            return;
+        }
 
-		if (Object.class.getName().equals(DocUtil.fqcnFor(element))) {
-			return accumulator;
-		}
+        VisitorContext visitorContext = VisitorContextBuilder.create(docTrees,
+                loaderProvider, reporter, element);
 
-		accumulator.addAll(element.getEnclosedElements());
+        maybeProcessProperty(typeConsumers, docTrees, docCommentTree, visitorContext);
+        maybeProcessMethodConversion(typeConsumers, docTrees, docCommentTree, visitorContext);
+    }
 
-		TypeMirror typeMirror = element.getSuperclass();
+    void maybeProcessProperty(TypeConsumers beanDocConsumer,
+                              DocTrees docTrees,
+                              DocCommentTree docCommentTree,
+                              VisitorContext visitorContext) {
 
-		return enclosedElements(
-				(TypeElement) docEnv.getTypeUtils().asElement(typeMirror), accumulator);
-	}
+        Element element = visitorContext.getElement();
 
-	/**
-	 * Process fields and method elements and ignore others.
-	 *
-	 * @param element The field or method or other element.
-	 * @param beanDocConsumer The thing that provides the consumer for property doc.
-	 */
-	void processFieldOrMethod(Element element, TypeConsumers beanDocConsumer) {
+        Optional<String> optionalPropertyName = toProp(element);
 
-		DocTrees docTrees = docEnv.getDocTrees();
+        if (optionalPropertyName.isEmpty()) {
+            return;
+        }
 
-		Optional<String> optionalPropertyName = toProp(element);
+        String propertyName = optionalPropertyName.get();
 
-		if (optionalPropertyName.isEmpty()) {
-			return;
-		}
+        PropertyVisitor.with(docTrees, visitorContext)
+                .visit(docCommentTree, beanDocConsumer, propertyName);
 
-		DocCommentTree docCommentTree = docTrees.getDocCommentTree(element);
+    }
 
-		if (docCommentTree == null) {
-			return;
-		}
+    void maybeProcessMethodConversion(TypeConsumers beanDocConsumer,
+                                      DocTrees docTrees,
+                                      DocCommentTree docCommentTree,
+                                      VisitorContext visitorContext) {
 
-		String propertyName = optionalPropertyName.get();
+        Element element = visitorContext.getElement();
 
-		VisitorContext visitorContext = VisitorContextBuilder.create(docTrees,
-				loaderProvider, reporter, element);
+        if (element.getKind() != ElementKind.METHOD) {
+            return;
+        }
 
-		PropertyVisitor.with(docTrees, visitorContext)
-				.visit(docCommentTree, beanDocConsumer, propertyName);
+        ConversionMethodVisitor.with(docTrees, visitorContext)
+                .visit(docCommentTree, beanDocConsumer);
+    }
 
-	}
+    static Optional<String> toProp(Element element) {
 
-	static Optional<String> toProp(Element element) {
-
-		if (element.getKind() == ElementKind.METHOD) {
-			return EtcUtils.propertyFromMethodName(element.getSimpleName().toString());
-		}
-		else if (element.getKind() == ElementKind.FIELD) {
-			return Optional.of(element.getSimpleName().toString());
-		}
-		else {
-			return Optional.empty();
-		}
-	}
+        if (element.getKind() == ElementKind.METHOD) {
+            return EtcUtils.propertyFromMethodName(element.getSimpleName().toString());
+        } else if (element.getKind() == ElementKind.FIELD) {
+            return Optional.of(element.getSimpleName().toString());
+        } else {
+            return Optional.empty();
+        }
+    }
 
 }

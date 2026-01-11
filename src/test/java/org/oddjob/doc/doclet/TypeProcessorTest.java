@@ -30,12 +30,13 @@ import java.util.spi.ToolProvider;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class TypeProcessorTest {
 
     static Reporter reporter;
 
-    static CaptureConsumer.Type beanDocConsumer;
+    static TypeCaptureConsumers beanDocConsumer;
 
     static LoaderProvider loaderProvider;
 
@@ -47,7 +48,7 @@ class TypeProcessorTest {
 
         reporter = mock(Reporter.class);
 
-        beanDocConsumer = new CaptureConsumer.Type();
+        beanDocConsumer = new TypeCaptureConsumers();
 
         loaderProvider = new OurLoaderProvider();
 
@@ -132,7 +133,9 @@ class TypeProcessorTest {
 
             TypeElement element = (TypeElement) new ArrayList<>(environment.getSpecifiedElements()).get(0);
 
-            test.process(element, beanDocConsumer);
+            TypeConsumersProvider typeConsumersProvider = mock(TypeConsumersProvider.class);
+            when(typeConsumersProvider.typeConsumersFor(element)).thenReturn(beanDocConsumer);
+            test.process(element, typeConsumersProvider);
 
             return true;
         }
@@ -190,7 +193,7 @@ class TypeProcessorTest {
 
         reporter = mock(Reporter.class);
 
-        beanDocConsumer = new CaptureConsumer.Type();
+        beanDocConsumer = new TypeCaptureConsumers();
 
         DocTrees docTrees = mock(DocTrees.class);
 
@@ -219,7 +222,7 @@ class TypeProcessorTest {
 
         reporter = mock(Reporter.class);
 
-        beanDocConsumer = new CaptureConsumer.Type();
+        beanDocConsumer = new TypeCaptureConsumers();
 
         DocTrees docTrees = mock(DocTrees.class);
 

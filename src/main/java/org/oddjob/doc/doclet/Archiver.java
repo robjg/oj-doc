@@ -6,13 +6,12 @@ package org.oddjob.doc.doclet;
 import jdk.javadoc.doclet.Reporter;
 import org.oddjob.arooa.beandocs.BeanDoc;
 import org.oddjob.arooa.beandocs.BeanDocArchive;
-import org.oddjob.arooa.beandocs.WriteableBeanDoc;
-import org.oddjob.doc.beandoc.BeanDocCollector;
-import org.oddjob.doc.util.DocUtil;
+import org.oddjob.arooa.beandocs.ConversionArchive;
+import org.oddjob.arooa.beandocs.ConversionDoc;
 
 import javax.lang.model.element.TypeElement;
-import javax.tools.Diagnostic;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,35 +22,31 @@ import java.util.Optional;
  * 
  * @author Rob Gordon.
  */
-public class Archiver implements BeanDocArchive {
+public class Archiver implements BeanDocArchive, ConversionArchive {
 
-	private final JobsAndTypes jats;
+    private final JobsAndTypes jats;
 
-	private final ElementProcessor elementProcessor;
+    private final Conversions conversions;
 
-	private final Reporter reporter;
+    private final ElementProcessor elementProcessor;
+
+    private final Reporter reporter;
+
     public Archiver(JobsAndTypes jats,
+                    Conversions conversions,
 					ElementProcessor elementProcessor,
 					Reporter reporter) {
-    	this.jats = jats;
+        this.jats = jats;
+        this.conversions = conversions;
 		this.elementProcessor = elementProcessor;
-		this.reporter = reporter;
-
+        this.reporter = reporter;
     }
     
     public void archive(TypeElement element) {
 
-		String fqcn = DocUtil.fqcnFor(element);
+        TypeConsumersProvider typeConsumersProvider = new ArchiverTypeConsumers(jats, conversions, reporter);
 
-    	WriteableBeanDoc beanDoc = jats.docFor(fqcn);
-
-    	if (beanDoc == null) {
-    		return;
-    	}
-
-		reporter.print(Diagnostic.Kind.NOTE, "Processing " + element);
-
-		elementProcessor.process(element, new BeanDocCollector(beanDoc));
+		elementProcessor.process(element, typeConsumersProvider);
 
     }
 
@@ -94,7 +89,19 @@ public class Archiver implements BeanDocArchive {
     	return jats.all();
     }
 
-	@Override
+    @Override
+    public List<ConversionDoc> conversionDocFor(String typeName) {
+        return Arrays.stream(conversions.getConversionDocsFrom(typeName))
+                .toList();
+    }
+
+    @Override
+    public List<ConversionDoc> allConversionDoc() {
+        return Arrays.stream(conversions.getConversionDocs())
+                .toList();
+    }
+
+    @Override
 	public String toString() {
 		return "Archiver{" +
 				jats +

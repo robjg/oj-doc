@@ -9,8 +9,8 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.oddjob.OurDirs;
 import org.oddjob.arooa.beandocs.element.LinkElement;
-import org.oddjob.doc.doclet.CaptureConsumer;
 import org.oddjob.doc.doclet.ThingWithSomeDoc;
+import org.oddjob.doc.doclet.TypeCaptureConsumers;
 
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.spi.ToolProvider;
-import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -31,7 +30,7 @@ import static org.mockito.Mockito.when;
 
 class InlineLinkTest {
 
-    static CaptureConsumer.Type typeCapture;
+    static TypeCaptureConsumers typeCapture;
 
     public static class OurDoclet implements Doclet {
 
@@ -60,7 +59,7 @@ class InlineLinkTest {
 
             DocTrees docTrees = environment.getDocTrees();
 
-            TypeElement element = (TypeElement) new ArrayList<>(environment.getSpecifiedElements()).get(0);
+            TypeElement element = (TypeElement) new ArrayList<>(environment.getSpecifiedElements()).getFirst();
 
             DocCommentTree docCommentTree = docTrees.getDocCommentTree(element);
 
@@ -95,7 +94,7 @@ class InlineLinkTest {
 
         Path srcPath = OurDirs.relativePath("src/test/java/org/oddjob/doc/visitor/ThingWithSomeLinks.java");
 
-        typeCapture = new CaptureConsumer.Type();
+        typeCapture = new TypeCaptureConsumers();
 
         ToolProvider toolProvider = ToolProvider.findFirst("javadoc")
                 .orElseThrow(() -> new IllegalArgumentException("No JavaDco"));
@@ -107,11 +106,11 @@ class InlineLinkTest {
                 .stream()
                 .filter(LinkElement.class::isInstance)
                 .map(LinkElement.class::cast)
-                .collect(Collectors.toList());
+                .toList();
 
         assertThat(result, is(0));
 
-        LinkElement link1 = linkElements.get(0);
+        LinkElement link1 = linkElements.getFirst();
         assertThat(link1.getSignature(), is("org.oddjob.doc.doclet.ThingWithSomeDoc"));
         assertThat(link1.getQualifiedType(), is(ThingWithSomeDoc.class.getName()));
         assertThat(link1.getPropertyName(), Matchers.nullValue());
@@ -147,9 +146,9 @@ class InlineLinkTest {
                 .stream()
                 .filter(LinkElement.class::isInstance)
                 .map(LinkElement.class::cast)
-                .collect(Collectors.toList());
+                .toList();
 
-        LinkElement propertyLink1 = propertyElements.get(0);
+        LinkElement propertyLink1 = propertyElements.getFirst();
         assertThat(propertyLink1.getSignature(), is("org.oddjob.doc.doclet.ThingWithSomeDoc"));
         assertThat(propertyLink1.getQualifiedType(), is(ThingWithSomeDoc.class.getName()));
         assertThat(propertyLink1.getPropertyName(), Matchers.nullValue());

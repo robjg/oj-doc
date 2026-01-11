@@ -5,6 +5,7 @@ package org.oddjob.doc.html;
 
 import org.oddjob.arooa.beandocs.BeanDoc;
 import org.oddjob.arooa.beandocs.BeanDocArchive;
+import org.oddjob.arooa.beandocs.ConversionArchive;
 import org.oddjob.doc.doclet.IndexLine;
 import org.oddjob.doc.doclet.ReferenceWriter;
 
@@ -130,7 +131,8 @@ public class HtmlReferenceWriter implements ReferenceWriter {
     }
 
     @Override
-    public void createManual(BeanDocArchive archive) {
+    public void createManual(BeanDocArchive archive,
+                             ConversionArchive conversionArchive) {
 
         List<IndexLine> jobIndexLines = writeAll(archive.allJobDoc());
         List<IndexLine> typeIndexLines = writeAll(archive.allTypeDoc());

@@ -1,7 +1,5 @@
 package org.oddjob.doc.doclet;
 
-import org.oddjob.doc.beandoc.TypeConsumers;
-
 import javax.lang.model.element.TypeElement;
 
 /**
@@ -13,8 +11,9 @@ public interface ElementProcessor {
      * Process a Type Element.
      *
      * @param element The Type Element.
-     * @param typeConsumers The Consumer for a Type
+     * @param typeConsumersProvider Provides Consumers for a Type
      */
-    void process(TypeElement element, TypeConsumers typeConsumers);
+    void process(TypeElement element,
+                 TypeConsumersProvider typeConsumersProvider);
 
 }
