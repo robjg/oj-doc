@@ -8,12 +8,10 @@ import org.oddjob.arooa.beandocs.BeanDoc;
 import org.oddjob.arooa.beandocs.BeanDocArchive;
 import org.oddjob.arooa.beandocs.ConversionArchive;
 import org.oddjob.arooa.beandocs.ConversionDoc;
+import org.oddjob.arooa.utils.ClassUtils;
 
 import javax.lang.model.element.TypeElement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 
 /**
@@ -96,9 +94,18 @@ public class Archiver implements BeanDocArchive, ConversionArchive {
     }
 
     @Override
-    public List<ConversionDoc> allConversionDoc() {
-        return Arrays.stream(conversions.getConversionDocs())
-                .toList();
+    public Collection<ConversionDoc> allConversionDoc() {
+
+        Comparator<String[]> comparator = (l, r) ->
+                Arrays.compare(l, r, Comparator.nullsFirst(ClassUtils::compareFqcn));
+
+        Map<String[], ConversionDoc> sorted = new TreeMap<>(comparator);
+        for (ConversionDoc doc : conversions.getConversionDocs()) {
+            sorted.put(new String[] { doc.getFromType(), doc.getToType() },
+                    doc);
+        }
+
+        return sorted.values();
     }
 
     @Override

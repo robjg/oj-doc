@@ -1,5 +1,7 @@
 package org.oddjob.doc.beandoc;
 
+import org.oddjob.arooa.convert.doc.MethodIdentifier;
+
 /**
  * Provides Document Consumers for the different parts of an Oddjob documented class.
  */
@@ -13,7 +15,7 @@ public interface TypeConsumers extends AutoCloseable {
 
     BeanDocConsumer conversion();
 
-    BeanDocConsumer conversion(String method);
+    BeanDocConsumer conversion(MethodIdentifier methodIdentifier);
 
     @Override
     void close();

@@ -7,6 +7,8 @@ import jdk.javadoc.doclet.DocletEnvironment;
 import jdk.javadoc.doclet.Reporter;
 import org.junit.jupiter.api.Test;
 import org.oddjob.OurDirs;
+import org.oddjob.arooa.convert.doc.MethodIdentifier;
+import org.oddjob.doc.beandoc.ExecutableElementIdentifier;
 import org.oddjob.doc.beandoc.TypeConsumers;
 import org.oddjob.doc.doclet.CaptureConsumer;
 
@@ -66,9 +68,16 @@ class ConversionMethodVisitorTest {
             when(visitorContext.getDocTrees()).thenReturn(docTrees);
             when(visitorContext.getElement()).thenReturn(element);
 
+            MethodIdentifier methodIdentifier;
+            try {
+                methodIdentifier = MethodIdentifier.ofMethod(ThingWithConversion.class.getMethod("toNumber"));
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException(e);
+            }
+
             TypeConsumers typeCapture = mock(TypeConsumers.class);
             when(typeCapture.conversion()).thenReturn(typeConsumer);
-            when(typeCapture.conversion("toNumber")).thenReturn(methodConsumer);
+            when(typeCapture.conversion(methodIdentifier)).thenReturn(methodConsumer);
 
             TypeVisitor.with(docTrees, visitorContext)
                     .visit(docCommentTree, typeCapture);
@@ -79,6 +88,9 @@ class ConversionMethodVisitorTest {
                     .findFirst()
                     .orElseThrow();
 
+            ExecutableElementIdentifier executableElementIdentifier = ExecutableElementIdentifier.ofElement(
+                    (ExecutableElement) someMethod, environment.getElementUtils());
+
             DocCommentTree methodComment = docTrees.getDocCommentTree(someMethod);
 
             VisitorContext innerVisitorContext = mock(VisitorContext.class);
@@ -86,7 +98,7 @@ class ConversionMethodVisitorTest {
             when(innerVisitorContext.getElement()).thenReturn(someMethod);
 
             ConversionMethodVisitor.with(docTrees, innerVisitorContext)
-                    .visit(methodComment, typeCapture);
+                    .visit(methodComment, typeCapture, executableElementIdentifier);
 
             return true;
         }

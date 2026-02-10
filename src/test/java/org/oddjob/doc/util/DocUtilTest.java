@@ -3,8 +3,6 @@ package org.oddjob.doc.util;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Test;
 
-import javax.lang.model.element.TypeElement;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -46,14 +44,4 @@ class DocUtilTest {
         assertThat(DocUtil.fileNameFor("aaa.bbb.Foo", "html"), is("aaa/bbb/Foo.html"));
     }
 
-    static class Nested {}
-
-    @Test
-    void fqcn() {
-
-        TypeElement element = DocTestUtil.element(DocUtilTest.class.getName() + ".Nested");
-
-        assertThat(DocUtil.fqcnFor(element),
-                is(Nested.class.getCanonicalName()));
-    }
 }

@@ -3,6 +3,8 @@ package org.oddjob.doc.doclet;
 import org.oddjob.arooa.beandocs.ConversionDoc;
 import org.oddjob.arooa.beandocs.WriteableConversionDoc;
 import org.oddjob.arooa.beandocs.WriteableConversionDocs;
+import org.oddjob.arooa.convert.doc.MethodIdentifier;
+import org.oddjob.arooa.convert.doc.TypeIdentifier;
 
 /**
  * Collects Conversion Docs in a way that makes them accessible during
@@ -18,10 +20,10 @@ public class Conversions {
         this.conversionsByType = conversionsByType;
     }
 
-    public As docByType(String typeName) {
+    public As docByType(TypeIdentifier typeIdentifier) {
 
-        if (conversionsByType.containsDocumentedByType(typeName)) {
-            return new As(typeName);
+        if (conversionsByType.containsDocumentedByType(typeIdentifier)) {
+            return new As(typeIdentifier);
         }
         else {
             return null;
@@ -38,18 +40,18 @@ public class Conversions {
 
     public class As {
 
-        private final String typeName;
+        private final TypeIdentifier typeIdentifier;
 
-        public As(String typeName) {
-            this.typeName = typeName;
+        public As(TypeIdentifier typeIdentifier) {
+            this.typeIdentifier = typeIdentifier;
         }
 
         public WriteableConversionDoc asType() {
-            return conversionsByType.conversionDocumentedByType(typeName);
+            return conversionsByType.conversionDocumentedByType(typeIdentifier);
         }
 
-        public WriteableConversionDoc asMethod(String methodName) {
-            return conversionsByType.conversionDocumentedByMethod(typeName, methodName);
+        public WriteableConversionDoc asMethod(MethodIdentifier methodIdentifier) {
+            return conversionsByType.conversionDocumentedByMethod(methodIdentifier);
         }
 
     }

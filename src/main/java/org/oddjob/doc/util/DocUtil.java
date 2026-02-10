@@ -104,10 +104,6 @@ public class DocUtil {
                 .collect(Collectors.joining("/"));
     }
 
-    public static String fqcnFor(TypeElement classDoc) {
-        return classDoc.getQualifiedName().toString();
-    }
-
     /**
      * For Unknown tags such as the loader tags where we just expect the file name.
      *

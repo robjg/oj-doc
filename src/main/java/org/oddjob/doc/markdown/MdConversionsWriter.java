@@ -6,6 +6,7 @@ import org.oddjob.arooa.beandocs.element.BeanDocElement;
 import org.oddjob.arooa.utils.AppendablePrinter;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Writes Conversion Doc in Markdown.
@@ -48,13 +49,18 @@ public class MdConversionsWriter {
 
         out.println("# Conversions");
         out.println();
+        out.println("Conversion documentation is a Work in Progress.");
         out.println();
         out.println("| From | To | Description |");
         out.println("| -------- | ----------- | ----------- |");
         for (ConversionDoc doc : conversionArchive.allConversionDoc()) {
+            String toText = Objects.requireNonNullElse(doc.getToType(), "*Various*");
+            String description = toLine(doc.getAllText());
+            if (description.isEmpty() && doc.getTypeOrMethod() != null) {
+                description = "Undocumented by " + doc.getTypeOrMethod();
+            }
             out.println("| " + doc.getFromType() + " | "
-                    + doc.getToType() + " | "
-                    + toLine(doc.getAllText()) + " | ");
+                    + toText + " | " + description + " | ");
         }
         out.println();
     }

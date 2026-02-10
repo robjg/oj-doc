@@ -4,6 +4,7 @@ import com.sun.source.doctree.DocCommentTree;
 import com.sun.source.doctree.UnknownBlockTagTree;
 import com.sun.source.util.DocTrees;
 import org.oddjob.doc.beandoc.BeanDocConsumer;
+import org.oddjob.doc.beandoc.ExecutableElementIdentifier;
 import org.oddjob.doc.beandoc.TypeConsumers;
 import org.oddjob.doc.doclet.CustomTagNames;
 
@@ -13,25 +14,28 @@ import java.util.Objects;
 /**
  * Doc Tree Node Visitor for a Conversion Method.
  */
-public class ConversionMethodVisitor extends NoopVisitor {
+public class ConversionMethodVisitor {
 
     private final DocTrees docTrees;
 
     private final VisitorContext visitorContext;
 
-    private ConversionMethodVisitor(DocTrees docTrees, VisitorContext visitorContext) {
+    private ConversionMethodVisitor(DocTrees docTrees,
+                                    VisitorContext visitorContext) {
         this.docTrees = docTrees;
         this.visitorContext = visitorContext;
     }
 
-    public static ConversionMethodVisitor with(DocTrees docTrees, VisitorContext visitorContext) {
+    public static ConversionMethodVisitor with(DocTrees docTrees,
+                                               VisitorContext visitorContext) {
         return new ConversionMethodVisitor(docTrees, visitorContext);
     }
 
     public void visit(DocCommentTree docCommentTree,
-                      TypeConsumers typeConsumers) {
+                      TypeConsumers typeConsumers,
+                    ExecutableElementIdentifier elementIdentifier) {
 
-        TheVisitor typeVisitor = new TheVisitor(typeConsumers);
+        TheVisitor typeVisitor = new TheVisitor(typeConsumers, elementIdentifier);
 
         docCommentTree.getBlockTags().forEach(node -> node.accept(typeVisitor, visitorContext));
 
@@ -43,8 +47,12 @@ public class ConversionMethodVisitor extends NoopVisitor {
 
         private final TypeConsumers typeConsumers;
 
-        TheVisitor(TypeConsumers typeConsumers) {
+        private final ExecutableElementIdentifier elementIdentifier;
+
+        TheVisitor(TypeConsumers typeConsumers,
+                   ExecutableElementIdentifier elementIdentifier) {
             this.typeConsumers = Objects.requireNonNull(typeConsumers);
+            this.elementIdentifier = Objects.requireNonNull(elementIdentifier);
         }
 
         @Override
@@ -54,8 +62,7 @@ public class ConversionMethodVisitor extends NoopVisitor {
 
             if (CustomTagNames.CONVERSION_TAG_NAME.equals(tagName)) {
 
-                String methodName = String.valueOf(visitorContext.getElement().getSimpleName());
-                BeanDocConsumer conversionConsumer = typeConsumers.conversion(methodName);
+                BeanDocConsumer conversionConsumer = typeConsumers.conversion(elementIdentifier);
 
                 if (conversionConsumer == null) {
                     return null;

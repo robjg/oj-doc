@@ -5,6 +5,7 @@ import org.oddjob.arooa.beandocs.WriteableConversionDoc;
 import org.oddjob.arooa.beandocs.WriteableExampleDoc;
 import org.oddjob.arooa.beandocs.WriteablePropertyDoc;
 import org.oddjob.arooa.beandocs.element.BeanDocElement;
+import org.oddjob.arooa.convert.doc.MethodIdentifier;
 import org.oddjob.doc.doclet.Conversions;
 
 import java.util.ArrayList;
@@ -130,7 +131,7 @@ public class BeanDocCollector implements TypeConsumers {
     }
 
     @Override
-    public BeanDocConsumer conversion(String method) {
+    public BeanDocConsumer conversion(MethodIdentifier method) {
 
         WriteableConversionDoc conversionDoc = conversionAs.asMethod(method);
         if (conversionDoc == null) {

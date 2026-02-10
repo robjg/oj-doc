@@ -1,5 +1,6 @@
 package org.oddjob.doc.doclet;
 
+import org.oddjob.arooa.convert.doc.MethodIdentifier;
 import org.oddjob.doc.beandoc.BeanDocConsumer;
 import org.oddjob.doc.beandoc.TypeConsumers;
 
@@ -51,7 +52,7 @@ public class TypeCaptureConsumers implements TypeConsumers {
     }
 
     @Override
-    public BeanDocConsumer conversion(String method) {
+    public BeanDocConsumer conversion(MethodIdentifier methodIdentifier) {
         throw new UnsupportedOperationException();
     }
 

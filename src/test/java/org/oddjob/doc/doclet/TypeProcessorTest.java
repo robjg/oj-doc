@@ -14,6 +14,7 @@ import org.oddjob.OurDirs;
 import org.oddjob.arooa.beandocs.element.BeanDocElement;
 import org.oddjob.arooa.beandocs.element.LinkElement;
 import org.oddjob.arooa.beandocs.element.StandardElement;
+import org.oddjob.doc.beandoc.TypeElementIdentifier;
 import org.oddjob.doc.html.HtmlContext;
 import org.oddjob.doc.html.HtmlVisitor;
 import org.oddjob.doc.loader.IncludeLoader;
@@ -132,9 +133,11 @@ class TypeProcessorTest {
             Processor test = new Processor(environment, loaderProvider, reporter);
 
             TypeElement element = (TypeElement) new ArrayList<>(environment.getSpecifiedElements()).get(0);
-
+            TypeElementIdentifier typeElementIdentifier = TypeElementIdentifier.ofElement(
+                    element, environment.getElementUtils());
             TypeConsumersProvider typeConsumersProvider = mock(TypeConsumersProvider.class);
-            when(typeConsumersProvider.typeConsumersFor(element)).thenReturn(beanDocConsumer);
+            when(typeConsumersProvider.typeConsumersFor(typeElementIdentifier))
+                    .thenReturn(beanDocConsumer);
             test.process(element, typeConsumersProvider);
 
             return true;

@@ -3,8 +3,10 @@ package org.oddjob.doc.beandoc;
 import org.junit.jupiter.api.Test;
 import org.oddjob.arooa.beandocs.WriteableConversionDoc;
 import org.oddjob.arooa.beandocs.WriteableConversionDocs;
-import org.oddjob.arooa.convert.ClassOrMethod;
 import org.oddjob.arooa.convert.doc.ConversionItemAccess;
+import org.oddjob.arooa.convert.doc.ElementIdentifier;
+import org.oddjob.arooa.convert.doc.MethodIdentifier;
+import org.oddjob.arooa.convert.doc.TypeIdentifier;
 import org.oddjob.doc.doclet.Conversions;
 
 import java.lang.reflect.Method;
@@ -25,27 +27,27 @@ class BeanDocCollectorTest {
                 .getName();
 
         WriteableConversionDoc conversionDoc = new WriteableConversionDoc();
-        conversionDoc.setTypeOrMethod(ClassOrMethod.ofMethod(method).getName());
+        conversionDoc.setTypeOrMethod(ElementIdentifier.ofMethod(method).getName());
         conversionDoc.setFromType(Number.class.getTypeName());
 
         ConversionItemAccess<WriteableConversionDoc> itemAccess = mock(ConversionItemAccess.class);
-        when(itemAccess.containsForType(BeanDocCollectorTest.class.getCanonicalName()))
+        when(itemAccess.containsForType(TypeIdentifier.ofClass(BeanDocCollectorTest.class)))
                 .thenReturn(true);
-        when(itemAccess.getForMethod(BeanDocCollectorTest.class.getCanonicalName(), methodName))
+        when(itemAccess.getForMethod(ElementIdentifier.ofMethod(method)))
                 .thenReturn(conversionDoc);
 
         WriteableConversionDocs conversionsDocs = new WriteableConversionDocs(itemAccess);
 
         Conversions conversions = new Conversions(conversionsDocs);
 
-        Conversions.As as = conversions.docByType(BeanDocCollectorTest.class.getTypeName());
+        Conversions.As as = conversions.docByType(ElementIdentifier.ofClass(BeanDocCollectorTest.class));
 
         assertThat(as, notNullValue());
 
         BeanDocCollector test = new BeanDocCollector(null, as,
                 message -> { throw new RuntimeException("Unexpected"); });
 
-        assertThat(test.conversion(methodName), notNullValue());
+        assertThat(test.conversion(MethodIdentifier.ofMethod(method)), notNullValue());
 
         test.close();
     }

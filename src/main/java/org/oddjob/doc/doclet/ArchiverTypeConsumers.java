@@ -4,9 +4,8 @@ import jdk.javadoc.doclet.Reporter;
 import org.oddjob.arooa.beandocs.WriteableBeanDoc;
 import org.oddjob.doc.beandoc.BeanDocCollector;
 import org.oddjob.doc.beandoc.TypeConsumers;
-import org.oddjob.doc.util.DocUtil;
+import org.oddjob.doc.beandoc.TypeElementIdentifier;
 
-import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import java.util.function.Consumer;
 
@@ -31,20 +30,19 @@ public class ArchiverTypeConsumers implements TypeConsumersProvider {
     }
 
     @Override
-    public TypeConsumers typeConsumersFor(TypeElement element) {
+    public TypeConsumers typeConsumersFor(TypeElementIdentifier typeIdentifier) {
 
-        String fqcn = DocUtil.fqcnFor(element);
+        WriteableBeanDoc beanDoc = jats.docFor(typeIdentifier.getClassName());
 
-        WriteableBeanDoc beanDoc = jats.docFor(fqcn);
-
-        Conversions.As conversionDoc = conversions.docByType(fqcn);
+        Conversions.As conversionDoc = conversions.docByType(typeIdentifier);
 
         if (beanDoc == null && conversionDoc == null) {
             return null;
         }
 
         Consumer<String> warningHandler = message -> {
-            reporter.print(Diagnostic.Kind.WARNING, element, message);
+            reporter.print(Diagnostic.Kind.WARNING,
+                    typeIdentifier.getModelElement(), message);
         };
 
         return new BeanDocCollector(beanDoc, conversionDoc, warningHandler);

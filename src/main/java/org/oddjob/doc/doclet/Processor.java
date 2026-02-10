@@ -8,13 +8,15 @@ import com.sun.source.util.DocTrees;
 import jdk.javadoc.doclet.DocletEnvironment;
 import jdk.javadoc.doclet.Reporter;
 import org.oddjob.arooa.utils.EtcUtils;
+import org.oddjob.doc.beandoc.ExecutableElementIdentifier;
 import org.oddjob.doc.beandoc.TypeConsumers;
-import org.oddjob.doc.util.DocUtil;
+import org.oddjob.doc.beandoc.TypeElementIdentifier;
 import org.oddjob.doc.util.LoaderProvider;
 import org.oddjob.doc.visitor.*;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
@@ -66,7 +68,9 @@ public class Processor implements ElementProcessor {
 
         List<Element> enclosed = enclosedElements(element, new ArrayList<>());
 
-        TypeConsumers typeConsumers = typeConsumersProvider.typeConsumersFor(element);
+        TypeElementIdentifier typeIdentifier = TypeElementIdentifier.ofElement(element, docEnv.getElementUtils());
+
+        TypeConsumers typeConsumers = typeConsumersProvider.typeConsumersFor(typeIdentifier);
 
         if (typeConsumers != null) {
 
@@ -84,10 +88,12 @@ public class Processor implements ElementProcessor {
                 TypeVisitor.with(docTrees, visitorContext)
                         .visit(docCommentTree, typeConsumers);
 
+                MemberProcessor memberProcessor = new MemberProcessor(typeConsumers,
+                        docTrees);
 
                 for (Element enclosedElement : enclosed) {
 
-                    processFieldOrMethod(enclosedElement, typeConsumers);
+                    memberProcessor.process(enclosedElement);
                 }
 
                 typeConsumers.close();
@@ -101,7 +107,6 @@ public class Processor implements ElementProcessor {
                 if (seenAlready.contains(typeElement)) {
                     continue;
                 }
-                System.out.println(typeElement.getQualifiedName());
                 processType(typeElement, typeConsumersProvider, seenAlready);
             }
         }
@@ -117,7 +122,7 @@ public class Processor implements ElementProcessor {
      */
     List<Element> enclosedElements(TypeElement element, List<Element> accumulator) {
 
-        if (Object.class.getName().equals(DocUtil.fqcnFor(element))) {
+        if (Object.class.getName().equals(element.getQualifiedName().toString())) {
             return accumulator;
         }
 
@@ -136,60 +141,68 @@ public class Processor implements ElementProcessor {
     /**
      * Process fields and method elements and ignore others.
      *
-     * @param element       The field or method or other element.
-     * @param typeConsumers The thing that provides the consumer for property
-     *                      or conversion doc.
      */
-    void processFieldOrMethod(Element element, TypeConsumers typeConsumers) {
+    class MemberProcessor {
 
-        DocTrees docTrees = docEnv.getDocTrees();
+        private final TypeConsumers typeConsumers;
+        private final DocTrees docTrees;
 
-        DocCommentTree docCommentTree = docTrees.getDocCommentTree(element);
-
-        if (docCommentTree == null) {
-            return;
+        MemberProcessor(TypeConsumers typeConsumers,
+                        DocTrees docTrees) {
+            this.typeConsumers = typeConsumers;
+            this.docTrees = docTrees;
         }
 
-        VisitorContext visitorContext = VisitorContextBuilder.create(docTrees,
-                loaderProvider, reporter, element);
+        void process(Element memberElement) {
 
-        maybeProcessProperty(typeConsumers, docTrees, docCommentTree, visitorContext);
-        maybeProcessMethodConversion(typeConsumers, docTrees, docCommentTree, visitorContext);
-    }
+            DocCommentTree docCommentTree = docTrees.getDocCommentTree(memberElement);
 
-    void maybeProcessProperty(TypeConsumers beanDocConsumer,
-                              DocTrees docTrees,
-                              DocCommentTree docCommentTree,
-                              VisitorContext visitorContext) {
+            if (docCommentTree == null) {
+                return;
+            }
 
-        Element element = visitorContext.getElement();
+            VisitorContext visitorContext = VisitorContextBuilder.create(docTrees,
+                    loaderProvider, reporter, memberElement);
 
-        Optional<String> optionalPropertyName = toProp(element);
+            maybeProcessProperty(memberElement,
+                    docCommentTree, visitorContext);
 
-        if (optionalPropertyName.isEmpty()) {
-            return;
+            maybeProcessMethodConversion(memberElement, docCommentTree, visitorContext);
+
+
         }
 
-        String propertyName = optionalPropertyName.get();
+        void maybeProcessProperty(Element memberElement,
+                                  DocCommentTree docCommentTree,
+                                  VisitorContext visitorContext) {
 
-        PropertyVisitor.with(docTrees, visitorContext)
-                .visit(docCommentTree, beanDocConsumer, propertyName);
+            Optional<String> optionalPropertyName = toProp(memberElement);
 
-    }
+            if (optionalPropertyName.isEmpty()) {
+                return;
+            }
 
-    void maybeProcessMethodConversion(TypeConsumers beanDocConsumer,
-                                      DocTrees docTrees,
-                                      DocCommentTree docCommentTree,
-                                      VisitorContext visitorContext) {
+            String propertyName = optionalPropertyName.get();
 
-        Element element = visitorContext.getElement();
+            PropertyVisitor.with(docTrees, visitorContext)
+                    .visit(docCommentTree, typeConsumers, propertyName);
 
-        if (element.getKind() != ElementKind.METHOD) {
-            return;
         }
 
-        ConversionMethodVisitor.with(docTrees, visitorContext)
-                .visit(docCommentTree, beanDocConsumer);
+        void maybeProcessMethodConversion(Element memberElement,
+                                          DocCommentTree docCommentTree,
+                                          VisitorContext visitorContext) {
+
+            if (memberElement.getKind() != ElementKind.METHOD) {
+                return;
+            }
+
+            ConversionMethodVisitor.with(docTrees, visitorContext)
+                    .visit(docCommentTree, typeConsumers,
+                            ExecutableElementIdentifier.ofElement((ExecutableElement) memberElement,
+                                    docEnv.getElementUtils()));
+        }
+
     }
 
     static Optional<String> toProp(Element element) {
@@ -202,5 +215,4 @@ public class Processor implements ElementProcessor {
             return Optional.empty();
         }
     }
-
 }

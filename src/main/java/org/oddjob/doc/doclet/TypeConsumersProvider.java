@@ -1,8 +1,7 @@
 package org.oddjob.doc.doclet;
 
 import org.oddjob.doc.beandoc.TypeConsumers;
-
-import javax.lang.model.element.TypeElement;
+import org.oddjob.doc.beandoc.TypeElementIdentifier;
 
 /**
  * Something that maybe provide document consumers for a type if we are interested in it.
@@ -13,8 +12,8 @@ public interface TypeConsumersProvider {
     /**
      * Provides consumers for the java doc if required for the given type element.
      *
-     * @param element The type element.
+     * @param typeIdentifier The type element identifier.
      * @return Doc Consumers for the type or null if javadoc for the type is not to be processed.
      */
-    TypeConsumers typeConsumersFor(TypeElement element);
+    TypeConsumers typeConsumersFor(TypeElementIdentifier typeIdentifier);
 }
